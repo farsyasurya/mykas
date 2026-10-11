@@ -9,7 +9,7 @@
         <div class="min-w-0 flex-1">
           <h1 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-tight truncate">Input Bayar Kas Kelas</h1>
           <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-tight truncate">
-            Tarif Rp 7.000 / pertemuan • Kelebihan dialokasikan ke tabungan
+            Tarif dihitung otomatis sesuai pertemuan • Kelebihan dialokasikan ke tabungan
           </p>
         </div>
       </div>
@@ -256,6 +256,29 @@
             </el-radio-group>
           </div>
 
+          <!-- Tanggal & Waktu Pembayaran (Created At) -->
+          <div class="w-full min-w-0">
+            <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                Waktu Pembayaran
+              </label>
+              <button
+                type="button"
+                @click="paymentDateTime = new Date()"
+                class="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
+              >
+                Set Sekarang
+              </button>
+            </div>
+            <el-date-picker
+              v-model="paymentDateTime"
+              type="datetime"
+              placeholder="Pilih tanggal & jam transaksi"
+              format="YYYY-MM-DD HH:mm"
+              class="!w-full"
+            />
+          </div>
+
           <!-- Real-Time Allocation Display Box (Compact) -->
           <div class="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 space-y-2 w-full min-w-0">
             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
@@ -323,6 +346,10 @@
             <span class="text-slate-500">Metode Pembayaran:</span>
             <el-tag size="small" type="info">{{ tipePembayaran }}</el-tag>
           </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Waktu Pembayaran:</span>
+            <span class="font-semibold text-slate-800">{{ formatIndonesianDateTime(paymentDateTime) }}</span>
+          </div>
           <div class="flex justify-between pt-2 border-t border-slate-200">
             <span class="text-slate-600">Total Uang Diterima:</span>
             <span class="font-bold text-slate-900">{{ formatRupiah(inputNominal || 0) }}</span>
@@ -364,7 +391,7 @@ import { meetingService } from '../../services/meetingService.js';
 import { classService } from '../../services/classService.js';
 import { paymentService } from '../../services/paymentService.js';
 import { formatRupiah } from '../../utils/currency.js';
-import { formatIndonesianDate } from '../../utils/date.js';
+import { formatIndonesianDate, formatIndonesianDateTime } from '../../utils/date.js';
 import { ElMessage } from 'element-plus';
 import { CirclePlus, InfoFilled, Check } from '@element-plus/icons-vue';
 import confetti from 'canvas-confetti';
@@ -383,8 +410,9 @@ const paidMeetingIdsSet = ref(new Set());
 
 const selectedStudentId = ref('');
 const selectedMeetingIds = ref([]);
-const inputNominal = ref(7000);
+const inputNominal = ref(0);
 const tipePembayaran = ref('TRANSFER');
+const paymentDateTime = ref(new Date());
 
 const runningSemester = computed(() => {
   return currentClass.value?.semesterAktif || authStore.userProfile?.kelasSemester || 'Semester 1 2026/2027';
@@ -406,13 +434,15 @@ const availableUnpaidMeetings = computed(() => {
 });
 
 const minRequiredNominal = computed(() => {
-  const count = selectedMeetingIds.value.length;
-  const tarif = 7000;
-  return count * tarif;
+  return calculatedKasIn.value;
 });
 
 const calculatedKasIn = computed(() => {
-  return selectedMeetingIds.value.length * 7000;
+  return selectedMeetingIds.value.reduce((total, id) => {
+    const meeting = meetingsList.value.find(m => m.id === id);
+    const tarif = meeting ? (Number(meeting.tarifKas) || 0) : 0;
+    return total + tarif;
+  }, 0);
 });
 
 const calculatedTabunganIn = computed(() => {
@@ -446,6 +476,7 @@ onMounted(async () => {
 
 async function handleStudentSelect(studentId) {
   selectedMeetingIds.value = [];
+  inputNominal.value = 0;
   if (!studentId) {
     paidMeetingIdsSet.value = new Set();
     return;
@@ -453,8 +484,6 @@ async function handleStudentSelect(studentId) {
 
   try {
     paidMeetingIdsSet.value = await paymentService.getPaidMeetingIdsForUser(studentId);
-    // Auto adjust nominal
-    inputNominal.value = 7000;
   } catch (err) {
     console.error('Error fetching paid meetings:', err);
   }
@@ -474,10 +503,8 @@ function toggleMeetingSelection(meetingId) {
     selectedMeetingIds.value.push(meetingId);
   }
 
-  // Adjust nominal if current nominal is less than required
-  if (inputNominal.value < minRequiredNominal.value) {
-    inputNominal.value = minRequiredNominal.value;
-  }
+  // Otomatis sinkronkan nominal dengan total tarif pertemuan yang dipilih
+  inputNominal.value = minRequiredNominal.value;
 }
 
 function selectAllUnpaidMeetings() {
@@ -514,8 +541,9 @@ async function handleSavePayment() {
       nim: selectedStudent.value.nim,
       nominalPembayaran: inputNominal.value,
       meetingIds: selectedMeetingIds.value,
-      tarifKas: 7000,
+      tarifKas: calculatedKasIn.value,
       tipePembayaran: tipePembayaran.value,
+      createdAt: paymentDateTime.value ? new Date(paymentDateTime.value) : new Date(),
       createdBy: authStore.user?.uid
     });
 

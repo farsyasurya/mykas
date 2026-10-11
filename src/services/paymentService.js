@@ -97,6 +97,7 @@ export const paymentService = {
     meetingIds,
     tarifKas = 7000,
     tipePembayaran = 'TRANSFER',
+    createdAt = null,
     createdBy
   }) {
     if (!kelasId || !userId || !meetingIds || meetingIds.length === 0) {
@@ -104,16 +105,29 @@ export const paymentService = {
     }
 
     const nominal = parseInt(nominalPembayaran, 10);
-    const tarif = parseInt(tarifKas, 10) || 7000;
     const jumlahPertemuan = meetingIds.length;
-    const totalMasukKas = jumlahPertemuan * tarif;
+
+    // Ambil tarif kas riil dari masing-masing pertemuan di database 'meetings'
+    let sumTarifKas = 0;
+    const meetingSnaps = await Promise.all(
+      meetingIds.map(id => getDoc(doc(db, 'meetings', id)))
+    );
+    meetingSnaps.forEach(mDoc => {
+      if (mDoc.exists()) {
+        const mData = mDoc.data();
+        sumTarifKas += Number(mData.tarifKas) || 0;
+      }
+    });
+
+    // Gunakan total tarif riil dari meetings, atau fallback jika tidak ditemukan
+    const totalMasukKas = sumTarifKas > 0 ? sumTarifKas : (jumlahPertemuan * (parseInt(tarifKas, 10) || 7000));
 
     if (isNaN(nominal) || nominal <= 0) {
       throw new Error('Nominal pembayaran harus berupa angka positif.');
     }
 
     if (nominal < totalMasukKas) {
-      throw new Error(`Nominal pembayaran (Rp ${nominal.toLocaleString()}) kurang dari total kas untuk ${jumlahPertemuan} pertemuan (Rp ${totalMasukKas.toLocaleString()}).`);
+      throw new Error(`Nominal pembayaran (Rp ${nominal.toLocaleString('id-ID')}) kurang dari total kas untuk ${jumlahPertemuan} pertemuan yang dipilih (Rp ${totalMasukKas.toLocaleString('id-ID')}).`);
     }
 
     const totalMasukTabungan = nominal - totalMasukKas;
@@ -181,10 +195,10 @@ export const paymentService = {
         totalMasukTabungan,
         meetingIds,
         jumlahPertemuan,
-        tarifKas: tarif,
+        tarifKas: jumlahPertemuan > 0 ? Math.round(totalMasukKas / jumlahPertemuan) : (Number(tarifKas) || 7000),
         tipePembayaran,
         createdBy: createdBy || 'admin',
-        createdAt: serverTimestamp(),
+        createdAt: createdAt ? (createdAt instanceof Date ? createdAt : new Date(createdAt)) : serverTimestamp(),
         updatedAt: serverTimestamp()
       };
       transaction.set(paymentRef, paymentData);
@@ -199,7 +213,7 @@ export const paymentService = {
           nominal: totalMasukTabungan,
           deskripsi: `Kelebihan pembayaran kas (${jumlahPertemuan} pertemuan)`,
           createdBy: createdBy || 'admin',
-          createdAt: serverTimestamp()
+          createdAt: createdAt ? (createdAt instanceof Date ? createdAt : new Date(createdAt)) : serverTimestamp()
         });
       }
 

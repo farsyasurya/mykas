@@ -86,6 +86,16 @@
           </router-link>
 
           <router-link
+            to="/admin/reports/meeting"
+            @click="handleLinkClick"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+            :class="{ '!bg-emerald-600 !text-white hover:!bg-emerald-600 shadow-sm': isCurrentRoute('/admin/reports/meeting') }"
+          >
+            <el-icon :size="18"><Calendar /></el-icon>
+            <span>Laporan Per Pertemuan</span>
+          </router-link>
+
+          <router-link
             to="/admin/reports"
             @click="handleLinkClick"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"

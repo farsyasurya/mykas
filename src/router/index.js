@@ -110,6 +110,12 @@ const routes = [
     component: () => import('../views/reports/ReportsView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
+  {
+    path: '/admin/reports/meeting',
+    name: 'MeetingReport',
+    component: () => import('../views/reports/MeetingReportView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
 
   // Student / User routes
   {

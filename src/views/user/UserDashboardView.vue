@@ -339,15 +339,20 @@ const unpaidDueCount = computed(() => {
 });
 
 const myTotalKasPaid = computed(() => {
-  return paidMeetingsCount.value * 7000;
+  return activeMeetings.value
+    .filter(m => paidMeetingIdsSet.value.has(m.id))
+    .reduce((sum, m) => sum + (Number(m.tarifKas) || 7000), 0);
 });
 
 const myTotalObligation = computed(() => {
-  return totalDueMeetingsCount.value * 7000;
+  return dueMeetings.value
+    .reduce((sum, m) => sum + (Number(m.tarifKas) || 7000), 0);
 });
 
 const myRemainingDebt = computed(() => {
-  return unpaidDueCount.value * 7000;
+  return dueMeetings.value
+    .filter(m => !paidMeetingIdsSet.value.has(m.id))
+    .reduce((sum, m) => sum + (Number(m.tarifKas) || 7000), 0);
 });
 
 const myPaymentStatus = computed(() => {

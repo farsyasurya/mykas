@@ -35,20 +35,44 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="Nama Mahasiswa" min-width="180">
+          <el-table-column label="Nama Mahasiswa" min-width="170">
             <template #default="{ row }">
               <div class="font-bold text-slate-900 dark:text-slate-100">{{ row.namaLengkap }}</div>
               <div class="text-xs text-slate-400 font-mono">NIM: {{ row.nim }}</div>
             </template>
           </el-table-column>
 
-          <el-table-column prop="jumlahPertemuan" label="Pertemuan" width="110" align="center">
+          <el-table-column label="Pertemuan Dibayar" min-width="210">
             <template #default="{ row }">
-              <el-tag size="small" type="info">{{ row.jumlahPertemuan }} Pertemuan</el-tag>
+              <div class="space-y-1 py-1">
+                <!-- Badges pertemuan berapa aja -->
+                <div class="flex flex-wrap items-center gap-1">
+                  <template v-if="getMeetingDetails(row).length > 0">
+                    <el-tag
+                      v-for="m in getMeetingDetails(row)"
+                      :key="m.id || m.nomor"
+                      size="small"
+                      type="success"
+                      effect="light"
+                      class="!font-bold !text-[10px] !rounded-md"
+                    >
+                      Ptm {{ m.nomor }}
+                    </el-tag>
+                  </template>
+                  <el-tag v-else size="small" type="info">
+                    {{ row.jumlahPertemuan }} Pertemuan
+                  </el-tag>
+                </div>
+
+                <!-- Tanggal Pembayaran -->
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                  <span class="font-medium text-slate-600 dark:text-slate-300">Tgl Bayar:</span> {{ formatIndonesianDateTime(row.createdAt) }}
+                </div>
+              </div>
             </template>
           </el-table-column>
 
-          <el-table-column prop="tipePembayaran" label="Metode" width="100" align="center">
+          <el-table-column prop="tipePembayaran" label="Metode" width="95" align="center">
             <template #default="{ row }">
               <el-tag :type="row.tipePembayaran === 'TRANSFER' ? 'primary' : 'success'" size="small">
                 {{ row.tipePembayaran }}
@@ -76,7 +100,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="Aksi" width="90" align="center" fixed="right">
+          <el-table-column label="Aksi" width="85" align="center" fixed="right">
             <template #default="{ row }">
               <el-button size="small" text type="primary" class="!font-bold" @click="openDetail(row)">
                 Detail
@@ -107,10 +131,35 @@
             </el-tag>
           </div>
 
+          <!-- Rincian Pertemuan Dibayar pada Mobile -->
+          <div class="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-1">
+            <span class="text-slate-400 text-[11px] block">Pertemuan yang Dibayar:</span>
+            <div class="flex flex-wrap items-center gap-1">
+              <template v-if="getMeetingDetails(p).length > 0">
+                <el-tag
+                  v-for="m in getMeetingDetails(p)"
+                  :key="m.id || m.nomor"
+                  size="small"
+                  type="success"
+                  effect="light"
+                  class="!font-bold !text-[10px] !rounded-md"
+                >
+                  Ptm {{ m.nomor }}
+                </el-tag>
+              </template>
+              <span v-else class="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                {{ p.jumlahPertemuan }} Pertemuan
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+              Tgl Bayar: {{ formatIndonesianDateTime(p.createdAt) }}
+            </p>
+          </div>
+
           <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
             <div>
-              <span class="text-slate-400 text-[11px] block">Jumlah Pertemuan</span>
-              <strong class="text-slate-800 dark:text-slate-200">{{ p.jumlahPertemuan }} Pertemuan</strong>
+              <span class="text-slate-400 text-[11px] block">Total Setoran</span>
+              <strong class="text-slate-800 dark:text-slate-200 font-mono">{{ formatRupiah(p.nominalPembayaran) }}</strong>
             </div>
             <div class="text-right">
               <span class="text-slate-400 text-[11px] block">Kas Masuk</span>
@@ -124,8 +173,8 @@
             <span v-if="p.totalMasukTabungan > 0" class="text-[11px] text-amber-600 dark:text-amber-400 font-medium font-mono">
               Tabungan: +{{ formatRupiah(p.totalMasukTabungan) }}
             </span>
-            <span v-else class="text-[11px] text-slate-400 font-mono">
-              Total: {{ formatRupiah(p.nominalPembayaran) }}
+            <span v-else class="text-[11px] text-slate-400">
+              Tanpa Tabungan
             </span>
 
             <el-button size="small" type="primary" plain class="!rounded-xl !text-xs !font-semibold ml-auto" @click="openDetail(p)">
@@ -155,10 +204,10 @@
       v-model="detailVisible"
       title="Rincian Transaksi Kas"
       width="92%"
-      class="!max-w-[480px] !rounded-2xl"
+      class="!max-w-[500px] !rounded-2xl"
       destroy-on-close
     >
-      <div v-if="activePayment" class="space-y-3 text-xs">
+      <div v-if="activePayment" class="space-y-3.5 text-xs">
         <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
           <span class="text-slate-500 dark:text-slate-400">Nama Mahasiswa</span>
           <span class="font-bold text-slate-900 dark:text-slate-100">{{ activePayment.namaLengkap }}</span>
@@ -168,19 +217,47 @@
           <span class="font-mono font-semibold text-slate-800 dark:text-slate-200">{{ activePayment.nim }}</span>
         </div>
         <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-          <span class="text-slate-500 dark:text-slate-400">Waktu Bayar</span>
-          <span class="text-slate-800 dark:text-slate-200">{{ formatIndonesianDateTime(activePayment.createdAt) }}</span>
+          <span class="text-slate-500 dark:text-slate-400">Tanggal & Waktu Pembayaran</span>
+          <span class="font-semibold text-emerald-700 dark:text-emerald-400">{{ formatIndonesianDateTime(activePayment.createdAt) }}</span>
         </div>
         <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-          <span class="text-slate-500 dark:text-slate-400">Metode</span>
-          <el-tag size="small">{{ activePayment.tipePembayaran }}</el-tag>
+          <span class="text-slate-500 dark:text-slate-400">Metode Pembayaran</span>
+          <el-tag size="small" :type="activePayment.tipePembayaran === 'TRANSFER' ? 'primary' : 'success'">
+            {{ activePayment.tipePembayaran }}
+          </el-tag>
         </div>
-        <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-          <span class="text-slate-500 dark:text-slate-400">Pertemuan</span>
-          <span class="font-semibold text-slate-800 dark:text-slate-200">{{ activePayment.jumlahPertemuan }} Pertemuan</span>
+
+        <!-- Daftar Pertemuan yang Dibayar -->
+        <div class="py-2 border-b border-slate-100 dark:border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 dark:text-slate-200">Rincian Pertemuan yang Dibayar:</span>
+            <el-tag size="small" type="success" effect="plain" class="!font-bold">
+              {{ activePayment.jumlahPertemuan }} Pertemuan
+            </el-tag>
+          </div>
+          <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+            <div
+              v-for="m in getMeetingDetails(activePayment)"
+              :key="m.id || m.nomor"
+              class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60"
+            >
+              <div class="flex items-center gap-2">
+                <el-tag size="small" type="success" effect="dark" class="!font-bold !rounded-lg text-[10px]">
+                  Pertemuan {{ m.nomor }}
+                </el-tag>
+                <span class="text-slate-600 dark:text-slate-300 text-[11px]">
+                  📅 {{ m.tanggal }}
+                </span>
+              </div>
+              <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-[11px]">
+                {{ formatRupiah(m.tarif) }}
+              </span>
+            </div>
+          </div>
         </div>
+
         <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-          <span class="text-slate-500 dark:text-slate-400">Total Masuk Kas</span>
+          <span class="text-slate-500 dark:text-slate-400">Total Masuk Kas Kelas</span>
           <span class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">{{ formatRupiah(activePayment.totalMasukKas) }}</span>
         </div>
         <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
@@ -188,8 +265,8 @@
           <span class="font-bold text-amber-600 dark:text-amber-400 font-mono">{{ formatRupiah(activePayment.totalMasukTabungan) }}</span>
         </div>
         <div class="flex justify-between py-2 border-t border-slate-200 dark:border-slate-700 text-sm">
-          <span class="font-bold text-slate-900 dark:text-slate-100">Total Disetor</span>
-          <span class="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">{{ formatRupiah(activePayment.nominalPembayaran) }}</span>
+          <span class="font-bold text-slate-900 dark:text-slate-100">Total Uang Disetor</span>
+          <span class="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono text-base">{{ formatRupiah(activePayment.nominalPembayaran) }}</span>
         </div>
       </div>
     </el-dialog>
@@ -200,14 +277,16 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/authStore.js';
 import { paymentService } from '../../services/paymentService.js';
+import { meetingService } from '../../services/meetingService.js';
 import { formatRupiah } from '../../utils/currency.js';
-import { formatIndonesianDateTime } from '../../utils/date.js';
+import { formatIndonesianDate, formatIndonesianDateTime } from '../../utils/date.js';
 import { ElMessage } from 'element-plus';
 import { Plus, Search } from '@element-plus/icons-vue';
 
 const authStore = useAuthStore();
 const loading = ref(false);
 const paymentsList = ref([]);
+const meetingsMap = ref(new Map());
 const searchQuery = ref('');
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -225,12 +304,60 @@ async function loadPayments() {
 
   loading.value = true;
   try {
-    paymentsList.value = await paymentService.getPaymentsByClass(classId);
+    const [payments, meetings] = await Promise.all([
+      paymentService.getPaymentsByClass(classId),
+      meetingService.getMeetingsByClass(classId)
+    ]);
+    paymentsList.value = payments || [];
+
+    const map = new Map();
+    (meetings || []).forEach(m => {
+      map.set(m.id, m);
+    });
+    meetingsMap.value = map;
   } catch (err) {
     ElMessage.error('Gagal memuat histori pembayaran: ' + err.message);
   } finally {
     loading.value = false;
   }
+}
+
+function getMeetingDetails(payment) {
+  if (!payment) return [];
+  if (!payment.meetingIds || !Array.isArray(payment.meetingIds) || payment.meetingIds.length === 0) {
+    return [];
+  }
+
+  const details = [];
+  payment.meetingIds.forEach((id, idx) => {
+    const m = meetingsMap.value.get(id);
+    if (m) {
+      details.push({
+        id: m.id,
+        nomor: m.nomorPertemuan,
+        tanggal: m.tanggalPertemuan ? formatIndonesianDate(m.tanggalPertemuan) : '-',
+        tarif: m.tarifKas || 7000,
+        semester: m.semester || ''
+      });
+    } else {
+      details.push({
+        id,
+        nomor: idx + 1,
+        tanggal: '-',
+        tarif: payment.tarifKas || 7000,
+        semester: payment.semester || ''
+      });
+    }
+  });
+
+  return details.sort((a, b) => (Number(a.nomor) || 0) - (Number(b.nomor) || 0));
+}
+
+function getMeetingDatesSummary(payment) {
+  const details = getMeetingDetails(payment);
+  const validDates = details.map(d => d.tanggal).filter(t => t && t !== '-');
+  if (validDates.length === 0) return '';
+  return validDates.join(', ');
 }
 
 const filteredPayments = computed(() => {

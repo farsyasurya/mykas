@@ -149,6 +149,15 @@
               </router-link>
 
               <router-link
+                to="/admin/reports/meeting"
+                @click="moreSheetVisible = false"
+                class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 text-xs font-semibold hover:border-emerald-500 transition-colors"
+              >
+                <el-icon :size="18" class="text-emerald-600 dark:text-emerald-400"><Calendar /></el-icon>
+                <span>Laporan Pertemuan</span>
+              </router-link>
+
+              <router-link
                 to="/admin/reports"
                 @click="moreSheetVisible = false"
                 class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 text-xs font-semibold hover:border-emerald-500 transition-colors"
