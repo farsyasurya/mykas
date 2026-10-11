@@ -1,20 +1,20 @@
 <template>
-  <div class="max-w-6xl mx-auto space-y-4">
+  <div class="max-w-6xl mx-auto space-y-4 w-full min-w-0 overflow-hidden">
     <!-- Top Compact Header -->
-    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
-      <div class="flex items-center gap-3 min-w-0">
+    <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors w-full min-w-0">
+      <div class="flex items-center gap-3 min-w-0 flex-1">
         <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shrink-0">
           <el-icon :size="20"><CirclePlus /></el-icon>
         </div>
-        <div class="min-w-0">
+        <div class="min-w-0 flex-1">
           <h1 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-tight truncate">Input Bayar Kas Kelas</h1>
-          <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-tight line-clamp-1 sm:line-clamp-none">
+          <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-tight truncate">
             Tarif Rp 7.000 / pertemuan • Kelebihan dialokasikan ke tabungan
           </p>
         </div>
       </div>
 
-      <router-link to="/admin/payments" class="w-full sm:w-auto">
+      <router-link to="/admin/payments" class="w-full sm:w-auto shrink-0">
         <el-button size="small" class="w-full sm:w-auto !rounded-xl text-xs dark:!border-slate-700">
           ← Kembali ke Histori
         </el-button>
@@ -22,9 +22,9 @@
     </div>
 
     <!-- 2-Column Side-by-Side Layout (No Page Scroll) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start w-full min-w-0">
       <!-- LEFT COLUMN (7 Cols): Mahasiswa & Pilihan Pertemuan -->
-      <div class="lg:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 space-y-4 transition-colors">
+      <div class="lg:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-3.5 sm:p-5 space-y-4 transition-colors w-full min-w-0">
         <!-- 1. Searchable Student Select -->
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
@@ -49,44 +49,44 @@
         <!-- 2. Student Badge / Savings Banner (Compact) -->
         <div
           v-if="selectedStudent"
-          class="p-3 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50/50 to-blue-50 dark:from-emerald-950/40 dark:via-teal-950/20 dark:to-blue-950/20 border border-emerald-200/80 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+          class="p-3 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50/50 to-blue-50 dark:from-emerald-950/40 dark:via-teal-950/20 dark:to-blue-950/20 border border-emerald-200/80 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs w-full min-w-0"
         >
-          <div class="flex items-center gap-2.5 min-w-0">
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
             <el-avatar :size="30" class="!bg-emerald-600 text-white font-bold text-xs shrink-0">
               {{ (selectedStudent.namaPanggilan || selectedStudent.namaLengkap || 'M').charAt(0) }}
             </el-avatar>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <span class="font-bold text-slate-900 dark:text-slate-100 truncate block">{{ selectedStudent.namaLengkap }}</span>
               <span class="text-slate-500 dark:text-slate-400 font-mono text-[11px]">NIM: {{ selectedStudent.nim }}</span>
             </div>
           </div>
-          <div class="text-left sm:text-right pt-1.5 sm:pt-0 border-t sm:border-t-0 border-emerald-200/60 dark:border-emerald-800/60">
+          <div class="text-left sm:text-right pt-1.5 sm:pt-0 border-t sm:border-t-0 border-emerald-200/60 dark:border-emerald-800/60 shrink-0">
             <span class="text-[11px] text-slate-500 dark:text-slate-400 mr-1.5">Tabungan:</span>
             <span class="font-bold text-amber-700 dark:text-amber-400 font-mono">{{ formatRupiah(selectedStudent.tabungan || 0) }}</span>
           </div>
         </div>
 
         <!-- 3. Pertemuan Selection Grid (Compact & Scrollable container if many) -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
+        <div class="w-full min-w-0">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5 w-full min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
               <span class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Pilih Pertemuan
               </span>
               <el-tag size="small" type="success" effect="plain" class="!font-bold !rounded-lg text-[10px]">
                 {{ runningSemester }}
               </el-tag>
-              <span class="text-emerald-700 dark:text-emerald-400 font-semibold text-xs ml-1">
+              <span class="text-emerald-700 dark:text-emerald-400 font-semibold text-xs ml-0.5">
                 ({{ selectedMeetingIds.length }} dipilih)
               </span>
             </div>
 
-            <div class="space-x-1">
+            <div class="flex items-center gap-2 text-xs shrink-0">
               <el-button
                 size="small"
                 type="primary"
                 link
-                class="!text-xs"
+                class="!text-xs !p-0"
                 @click="selectAllUnpaidMeetings"
                 :disabled="!selectedStudent || availableUnpaidMeetings.length === 0"
               >
@@ -96,7 +96,7 @@
               <el-button
                 size="small"
                 link
-                class="!text-xs text-slate-500 dark:text-slate-400"
+                class="!text-xs text-slate-500 dark:text-slate-400 !p-0"
                 @click="selectedMeetingIds = []"
                 :disabled="selectedMeetingIds.length === 0"
               >
@@ -183,18 +183,18 @@
       </div>
 
       <!-- RIGHT COLUMN (5 Cols): Nominal, Kalkulasi & Tombol Simpan -->
-      <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 space-y-4 flex flex-col justify-between transition-colors">
-        <div class="space-y-4">
+      <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-3.5 sm:p-5 space-y-4 flex flex-col justify-between transition-colors w-full min-w-0">
+        <div class="space-y-4 w-full min-w-0">
           <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
             <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Rincian Pembayaran</h3>
             <p class="text-[11px] text-slate-400">Tentukan nominal setoran dan metode transaksi</p>
           </div>
 
           <!-- Nominal Uang yang Disetor -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
+          <div class="w-full min-w-0">
+            <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
               <label class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                Uang Disetor Mahasiswa (Rp)
+                Uang Disetor (Rp)
               </label>
               <button
                 type="button"
@@ -213,32 +213,32 @@
             />
 
             <!-- Quick Chips / Shortcuts for Nominal -->
-            <div class="flex items-center gap-1.5 mt-2">
+            <div class="flex items-center gap-1.5 mt-2 flex-wrap">
               <button
                 type="button"
                 @click="inputNominal = minRequiredNominal"
-                class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
               >
                 Pas Kas
               </button>
               <button
                 type="button"
                 @click="inputNominal = minRequiredNominal + 5000"
-                class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
               >
                 +5rb
               </button>
               <button
                 type="button"
                 @click="inputNominal = minRequiredNominal + 10000"
-                class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
               >
                 +10rb
               </button>
               <button
                 type="button"
                 @click="inputNominal = 50000"
-                class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
               >
                 50rb
               </button>
@@ -246,18 +246,18 @@
           </div>
 
           <!-- Metode Pembayaran -->
-          <div>
+          <div class="w-full min-w-0">
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
               Metode Transaksi
             </label>
-            <el-radio-group v-model="tipePembayaran" size="small" class="!w-full">
-              <el-radio-button value="TRANSFER" class="!flex-1 text-center">Transfer / QRIS</el-radio-button>
-              <el-radio-button value="CASH" class="!flex-1 text-center">Tunai (Cash)</el-radio-button>
+            <el-radio-group v-model="tipePembayaran" size="default" class="!w-full grid grid-cols-2">
+              <el-radio-button value="TRANSFER" class="w-full text-center">Transfer / QRIS</el-radio-button>
+              <el-radio-button value="CASH" class="w-full text-center">Tunai (Cash)</el-radio-button>
             </el-radio-group>
           </div>
 
           <!-- Real-Time Allocation Display Box (Compact) -->
-          <div class="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 space-y-2">
+          <div class="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 space-y-2 w-full min-w-0">
             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
               Alokasi Keuangan Otomatis
             </span>
