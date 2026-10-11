@@ -1,0 +1,54 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "meetings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "kelasId", "order": "ASCENDING" },
+        { "fieldPath": "semester", "order": "ASCENDING" },
+        { "fieldPath": "nomorPertemuan", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "payments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "kelasId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "expenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "kelasId", "order": "ASCENDING" },
+        { "fieldPath": "tanggalPengeluaran", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "otherIncomes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "kelasId", "order": "ASCENDING" },
+        { "fieldPath": "tanggalPemasukan", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "savingsTransactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "auditLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "kelasId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
