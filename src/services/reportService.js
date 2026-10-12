@@ -192,6 +192,29 @@ export const reportService = {
 
       // Total pertemuan yang sudah dibayar mahasiswa di semester ini
       const pertemuanLunas = activeMeetings.filter(m => paidMeetingIds.has(m.id)).length;
+      const totalKasPaid = activeMeetings.filter(m => paidMeetingIds.has(m.id)).reduce((s, m) => s + (Number(m.tarifKas) || tarifKas), 0);
+
+      // Jika mahasiswa TIDAK AKTIF: tidak wajib membayar lagi & tidak ada kewajiban/tunggakan
+      const isStudentActive = student.isActive !== false;
+      if (!isStudentActive) {
+        return {
+          userId: student.id,
+          namaLengkap: student.namaLengkap,
+          namaPanggilan: student.namaPanggilan,
+          nim: student.nim,
+          semester: runningSemester,
+          totalPertemuan,
+          totalPertemuanWajib: 0,
+          pertemuanLunas,
+          pertemuanBelumLunas: 0,
+          totalKewajiban: 0,
+          totalKasPaid,
+          saldoTabungan: student.tabungan || 0,
+          tunggakan: 0,
+          status: 'TIDAK AKTIF',
+          isActive: false
+        };
+      }
 
       // Pertemuan jatuh tempo (sekarang dan sebelumnya) yang sudah dibayar vs belum dibayar
       // Mahasiswa dianggap telah melunasi kewajiban jika sudah membayar pertemuan yang jatuh tempo,
@@ -202,7 +225,6 @@ export const reportService = {
 
       // Kewajiban saat ini hanya dari pertemuan yang sudah tiba waktunya (sekarang & sebelumnya)
       const totalKewajiban = dueMeetings.reduce((s, m) => s + (Number(m.tarifKas) || tarifKas), 0);
-      const totalKasPaid = activeMeetings.filter(m => paidMeetingIds.has(m.id)).reduce((s, m) => s + (Number(m.tarifKas) || tarifKas), 0);
       const tunggakan = dueMeetings.filter(m => !paidMeetingIds.has(m.id)).reduce((s, m) => s + (Number(m.tarifKas) || tarifKas), 0);
 
       // Status: jika sudah membayar pertemuan sekarang dan sebelumnya, statusnya LUNAS
@@ -230,12 +252,14 @@ export const reportService = {
         totalKasPaid,
         saldoTabungan: student.tabungan || 0,
         tunggakan,
-        status
+        status,
+        isActive: true
       };
     });
 
     const mahasiswaLunasCount = rekapMahasiswa.filter(s => s.status === 'LUNAS').length;
-    const mahasiswaBelumLunasCount = rekapMahasiswa.filter(s => s.status !== 'LUNAS').length;
+    const mahasiswaBelumLunasCount = rekapMahasiswa.filter(s => s.status === 'BELUM LUNAS' || s.status === 'BELUM ADA PEMBAYARAN').length;
+    const mahasiswaTidakAktifCount = rekapMahasiswa.filter(s => s.status === 'TIDAK AKTIF').length;
     const tunggakanList = rekapMahasiswa.filter(s => s.tunggakan > 0);
 
     return {

@@ -460,8 +460,8 @@ onMounted(async () => {
       meetingService.getMeetingsByClass(classId),
       classService.getClassById(classId)
     ]);
-    // Hanya tampilkan mahasiswa dengan role USER (admin & super admin tidak dikenakan kas)
-    studentsList.value = (students || []).filter(s => s.role === 'USER');
+    // Hanya tampilkan mahasiswa aktif dengan role USER (admin & super admin serta user nonaktif tidak dikenakan kas)
+    studentsList.value = (students || []).filter(s => s.role === 'USER' && s.isActive !== false);
     meetingsList.value = meetings;
     currentClass.value = cls;
 

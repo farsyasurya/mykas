@@ -1,0 +1,57 @@
+name: MyKas Telegram Notifications
+
+on:
+  # 1. Otomatis terjadwal setiap hari pukul 07:00 WIB (00:00 UTC)
+  schedule:
+    - cron: '0 0 * * *'
+
+  # 2. Dapat dijalankan manual kapan saja dari tab GitHub Actions
+  workflow_dispatch:
+    inputs:
+      check_overdue:
+        description: 'Sertakan pengingat tunggakan mahasiswa?'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  send-telegram-reminders:
+    name: Kirim Pengingat Kas ke Telegram
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 🚀 Jalankan Pengiriman Notifikasi Telegram
+        run: node scripts/send-telegram-reminders.js
+        env:
+          # Token Telegram dari BotFather
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+
+          # Opsional: Chat ID Grup Telegram kelas (misal: -100xxxxxxxxxx)
+          TELEGRAM_GROUP_CHAT_ID: ${{ secrets.TELEGRAM_GROUP_CHAT_ID }}
+
+          # Konfigurasi Firebase Project
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY || vars.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN || vars.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID || vars.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET || vars.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID || vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID || vars.VITE_FIREBASE_APP_ID }}
+
+          # Akun Bot / Admin untuk autentikasi Firebase
+          BOT_EMAIL: ${{ secrets.BOT_EMAIL }}
+          BOT_PASSWORD: ${{ secrets.BOT_PASSWORD }}
+
+          # Parameter pengingat tunggakan jika dipicu manual
+          CHECK_OVERDUE: ${{ github.event.inputs.check_overdue || 'false' }}

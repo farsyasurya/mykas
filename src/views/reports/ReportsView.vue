@@ -212,7 +212,7 @@
             <el-table-column label="Status" width="140" align="center">
               <template #default="{ row }">
                 <el-tag
-                  :type="row.status === 'LUNAS' ? 'success' : (row.status === 'BELUM LUNAS' ? 'warning' : 'danger')"
+                  :type="row.status === 'LUNAS' ? 'success' : (row.status === 'BELUM LUNAS' ? 'warning' : (row.status === 'TIDAK AKTIF' ? 'info' : 'danger'))"
                   size="small"
                   class="!font-bold"
                 >
@@ -236,7 +236,7 @@
                 <p class="text-xs text-slate-400 font-mono">NIM: {{ mhs.nim }}</p>
               </div>
               <el-tag
-                :type="mhs.status === 'LUNAS' ? 'success' : (mhs.status === 'BELUM LUNAS' ? 'warning' : 'danger')"
+                :type="mhs.status === 'LUNAS' ? 'success' : (mhs.status === 'BELUM LUNAS' ? 'warning' : (mhs.status === 'TIDAK AKTIF' ? 'info' : 'danger'))"
                 size="small"
                 class="!font-bold shrink-0"
               >

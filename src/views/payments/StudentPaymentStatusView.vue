@@ -20,6 +20,7 @@
           <el-option label="LUNAS" value="LUNAS" />
           <el-option label="BELUM LUNAS" value="BELUM LUNAS" />
           <el-option label="BELUM ADA PEMBAYARAN" value="BELUM ADA PEMBAYARAN" />
+          <el-option label="TIDAK AKTIF" value="TIDAK AKTIF" />
         </el-select>
 
         <el-input
@@ -33,12 +34,12 @@
     </div>
 
     <!-- Summary Badges -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
       <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-4 flex items-center justify-between">
         <div class="min-w-0">
           <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Mahasiswa Lunas</span>
           <h3 class="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 mt-0.5">{{ lunasCount }} Orang</h3>
-          <p class="text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">Sudah bayar pertemuan sekarang & sebelumnya</p>
+          <p class="text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">Sudah bayar pertemuan saat ini & sebelumnya</p>
         </div>
         <el-icon class="text-emerald-500 shrink-0 ml-2" :size="30"><Check /></el-icon>
       </div>
@@ -59,6 +60,15 @@
           <p class="text-[10px] sm:text-[11px] text-rose-600 dark:text-rose-400 mt-0.5 truncate">Belum bayar dari awal semester</p>
         </div>
         <el-icon class="text-rose-500 shrink-0 ml-2" :size="30"><Close /></el-icon>
+      </div>
+
+      <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
+        <div class="min-w-0">
+          <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Tidak Aktif</span>
+          <h3 class="text-xl sm:text-2xl font-extrabold text-slate-700 dark:text-slate-200 mt-0.5">{{ tidakAktifCount }} Orang</h3>
+          <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Bebas kewajiban kas (nonaktif)</p>
+        </div>
+        <el-icon class="text-slate-400 shrink-0 ml-2" :size="30"><InfoFilled /></el-icon>
       </div>
     </div>
 
@@ -119,7 +129,7 @@
           <el-table-column label="Status Pembayaran" width="160" align="center">
             <template #default="{ row }">
               <el-tag
-                :type="row.status === 'LUNAS' ? 'success' : (row.status === 'BELUM LUNAS' ? 'warning' : 'danger')"
+                :type="row.status === 'LUNAS' ? 'success' : (row.status === 'BELUM LUNAS' ? 'warning' : (row.status === 'TIDAK AKTIF' ? 'info' : 'danger'))"
                 effect="light"
                 class="!font-bold !text-[11px]"
               >
@@ -128,10 +138,13 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="Aksi" width="100" align="center" fixed="right">
+          <el-table-column label="Aksi" width="110" align="center" fixed="right">
             <template #default="{ row }">
+              <span v-if="row.status === 'TIDAK AKTIF'" class="text-xs text-slate-400 dark:text-slate-500 font-semibold">
+                Bebas Kas
+              </span>
               <router-link
-                v-if="row.status !== 'LUNAS'"
+                v-else-if="row.status !== 'LUNAS'"
                 :to="`/admin/payments/create?studentId=${row.userId}`"
               >
                 <el-button size="small" type="primary" link class="!text-xs !font-bold">
@@ -162,7 +175,7 @@
               <p class="text-[11px] text-slate-400 font-mono">NIM: {{ st.nim }}</p>
             </div>
             <el-tag
-              :type="st.status === 'LUNAS' ? 'success' : (st.status === 'BELUM LUNAS' ? 'warning' : 'danger')"
+              :type="st.status === 'LUNAS' ? 'success' : (st.status === 'BELUM LUNAS' ? 'warning' : (st.status === 'TIDAK AKTIF' ? 'info' : 'danger'))"
               size="small"
               class="!font-bold shrink-0 text-[10px]"
             >
@@ -201,8 +214,11 @@
               Detail Rincian
             </el-button>
 
+            <span v-if="st.status === 'TIDAK AKTIF'" class="text-xs text-slate-400 dark:text-slate-500 font-semibold px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-center flex-1">
+              Bebas Kas
+            </span>
             <router-link
-              v-if="st.status !== 'LUNAS'"
+              v-else-if="st.status !== 'LUNAS'"
               :to="`/admin/payments/create?studentId=${st.userId}`"
               class="flex-1"
             >
@@ -237,7 +253,7 @@
             <p class="text-xs text-slate-400 font-mono mt-0.5">NIM: {{ selectedStudent.nim }}</p>
           </div>
           <el-tag
-            :type="selectedStudent.status === 'LUNAS' ? 'success' : (selectedStudent.status === 'BELUM LUNAS' ? 'warning' : 'danger')"
+            :type="selectedStudent.status === 'LUNAS' ? 'success' : (selectedStudent.status === 'BELUM LUNAS' ? 'warning' : (selectedStudent.status === 'TIDAK AKTIF' ? 'info' : 'danger'))"
             class="!font-bold shrink-0"
           >
             {{ selectedStudent.status }}
@@ -284,7 +300,7 @@
         <div class="flex items-center justify-end gap-2">
           <el-button @click="detailDialogVisible = false" class="!rounded-xl">Tutup</el-button>
           <router-link
-            v-if="selectedStudent && selectedStudent.status !== 'LUNAS'"
+            v-if="selectedStudent && selectedStudent.status !== 'LUNAS' && selectedStudent.status !== 'TIDAK AKTIF'"
             :to="`/admin/payments/create?studentId=${selectedStudent.userId}`"
           >
             <el-button
@@ -308,7 +324,7 @@ import { reportService } from '../../services/reportService.js';
 import { formatRupiah } from '../../utils/currency.js';
 import { getCurrentMonthYear } from '../../utils/date.js';
 import { ElMessage } from 'element-plus';
-import { Search, Check, Warning, Close } from '@element-plus/icons-vue';
+import { Search, Check, Warning, Close, InfoFilled } from '@element-plus/icons-vue';
 
 const authStore = useAuthStore();
 const loading = ref(false);
@@ -348,6 +364,7 @@ async function loadStatus() {
 const lunasCount = computed(() => students.value.filter(s => s.status === 'LUNAS').length);
 const belumLunasCount = computed(() => students.value.filter(s => s.status === 'BELUM LUNAS').length);
 const belumAdaPembayaranCount = computed(() => students.value.filter(s => s.status === 'BELUM ADA PEMBAYARAN').length);
+const tidakAktifCount = computed(() => students.value.filter(s => s.status === 'TIDAK AKTIF').length);
 
 const filteredStudents = computed(() => {
   let list = students.value;

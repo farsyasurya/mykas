@@ -807,7 +807,7 @@ async function openMeetingDetails(meeting) {
       }
     });
 
-    const onlyStudents = (students || []).filter(st => st.role === 'USER');
+    const onlyStudents = (students || []).filter(st => st.role === 'USER' && st.isActive !== false);
 
     meetingStudentsStatus.value = onlyStudents.map(st => {
       const p = paidPaymentMap.get(st.id);

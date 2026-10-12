@@ -32,11 +32,11 @@
 
         <!-- Read-only verified fields -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <el-form-item label="NIM Mahasiswa (Terkunci)">
+          <el-form-item label="NIM (Terkunci)">
             <el-input :model-value="authStore.userProfile?.nim" disabled placeholder="NIM" />
           </el-form-item>
 
-          <el-form-item label="Kelas Perkuliahan (Terkunci)">
+          <el-form-item label="Kelas (Terkunci)">
             <el-input :model-value="authStore.userProfile?.kelasNama" disabled placeholder="Kelas" />
           </el-form-item>
         </div>
@@ -58,6 +58,64 @@
         </div>
       </el-form>
     </div>
+
+    <!-- Card Ganti Kata Sandi -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 sm:p-8 transition-colors">
+      <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+          <el-icon :size="20"><Lock /></el-icon>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Ganti Kata Sandi Akun</h3>
+          <p class="text-xs text-slate-400">Pastikan menggunakan kata sandi yang aman dan mudah Anda ingat.</p>
+        </div>
+      </div>
+
+      <el-form label-position="top" size="large" @submit.prevent="handleChangePassword">
+        <el-form-item label="Kata Sandi Saat Ini" required>
+          <el-input
+            v-model="passwordForm.currentPassword"
+            type="password"
+            show-password
+            placeholder="Masukkan kata sandi saat ini"
+            autocomplete="current-password"
+          />
+        </el-form-item>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <el-form-item label="Kata Sandi Baru" required>
+            <el-input
+              v-model="passwordForm.newPassword"
+              type="password"
+              show-password
+              placeholder="Minimal 6 karakter"
+              autocomplete="new-password"
+            />
+          </el-form-item>
+
+          <el-form-item label="Ulangi Kata Sandi Baru" required>
+            <el-input
+              v-model="passwordForm.confirmPassword"
+              type="password"
+              show-password
+              placeholder="Ketik ulang kata sandi baru"
+              autocomplete="new-password"
+            />
+          </el-form-item>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <el-button
+            type="primary"
+            class="!h-11 !px-6 !rounded-xl !bg-amber-600 hover:!bg-amber-700 !border-none !font-bold"
+            :loading="changingPassword"
+            native-type="submit"
+          >
+            Perbarui Kata Sandi
+          </el-button>
+        </div>
+      </el-form>
+    </div>
   </div>
 </template>
 
@@ -66,14 +124,21 @@ import { ref, reactive, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/authStore.js';
 import { userService } from '../../services/userService.js';
 import { ElMessage } from 'element-plus';
-import { InfoFilled } from '@element-plus/icons-vue';
+import { InfoFilled, Lock } from '@element-plus/icons-vue';
 
 const authStore = useAuthStore();
 const saving = ref(false);
+const changingPassword = ref(false);
 
 const form = reactive({
   namaLengkap: '',
   namaPanggilan: ''
+});
+
+const passwordForm = reactive({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
 });
 
 onMounted(() => {
@@ -101,6 +166,46 @@ async function handleSaveProfile() {
     ElMessage.error(err.message || 'Gagal memperbarui profil');
   } finally {
     saving.value = false;
+  }
+}
+
+async function handleChangePassword() {
+  if (!passwordForm.currentPassword) {
+    ElMessage.warning('Silakan masukkan kata sandi Anda saat ini');
+    return;
+  }
+  if (!passwordForm.newPassword || passwordForm.newPassword.length < 6) {
+    ElMessage.warning('Kata sandi baru minimal harus 6 karakter');
+    return;
+  }
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    ElMessage.warning('Konfirmasi kata sandi baru tidak cocok');
+    return;
+  }
+  if (passwordForm.currentPassword === passwordForm.newPassword) {
+    ElMessage.warning('Kata sandi baru tidak boleh sama dengan kata sandi saat ini');
+    return;
+  }
+
+  changingPassword.value = true;
+  try {
+    await authStore.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+    ElMessage.success('Kata sandi akun Anda berhasil diperbarui!');
+    passwordForm.currentPassword = '';
+    passwordForm.newPassword = '';
+    passwordForm.confirmPassword = '';
+  } catch (err) {
+    let msg = err.message || 'Gagal memperbarui kata sandi';
+    if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+      msg = 'Kata sandi saat ini yang Anda masukkan salah.';
+    } else if (err.code === 'auth/weak-password') {
+      msg = 'Kata sandi terlalu lemah. Gunakan minimal 6 karakter kombinasi.';
+    } else if (err.code === 'auth/requires-recent-login') {
+      msg = 'Sesi keamanan kedaluwarsa. Silakan logout dan login kembali untuk mengubah kata sandi.';
+    }
+    ElMessage.error(msg);
+  } finally {
+    changingPassword.value = false;
   }
 }
 </script>

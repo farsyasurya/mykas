@@ -175,6 +175,12 @@ router.beforeEach(async (to, from, next) => {
     await authStore.initAuth();
   }
 
+  // Akun berstatus tidak aktif tidak boleh mengakses rute terproteksi
+  if (authStore.isAuthenticated && authStore.userProfile?.isActive === false) {
+    await authStore.logout();
+    return next({ path: '/login', query: { error: 'inactive' } });
+  }
+
   if (to.meta.guestOnly && authStore.isAuthenticated) {
     if (authStore.isAdmin) return next('/admin/dashboard');
     return next('/user/dashboard');

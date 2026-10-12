@@ -30,7 +30,7 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
-          <el-form-item label="NIM Mahasiswa" prop="nim">
+          <el-form-item label="NIM" prop="nim">
             <el-input v-model="form.nim" placeholder="Contoh: 231011400123" />
           </el-form-item>
 

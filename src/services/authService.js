@@ -4,7 +4,10 @@ import {
   signOut,
   sendPasswordResetEmail,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from 'firebase/auth';
 import {
   doc,
@@ -27,38 +30,76 @@ export const authService = {
   },
 
   /**
-   * Login with email & password
+   * Login with NIM or Email & password
+   * @param {string} identifier - NIM Mahasiswa atau Email Akun
+   * @param {string} password
    */
-  async login(email, password) {
-    const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
-    let userDoc = await this.getUserProfile(credential.user.uid);
-
-    // Jika akun terdaftar di Firebase Auth namun belum memiliki dokumen profil di Firestore
-    if (!userDoc) {
-      const initialProfile = {
-        uid: credential.user.uid,
-        email: (credential.user.email || email).trim().toLowerCase(),
-        namaLengkap: credential.user.displayName || email.split('@')[0],
-        namaPanggilan: credential.user.displayName?.split(' ')[0] || email.split('@')[0],
-        nim: '',
-        kelasId: '',
-        kelasNama: '',
-        role: 'USER',
-        tabungan: 0,
-        telegramChatId: '',
-        telegramConnected: false,
-        isActive: true,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-      await setDoc(doc(db, 'users', credential.user.uid), initialProfile);
-      userDoc = initialProfile;
+  async login(identifier, password) {
+    const cleanId = String(identifier || '').trim();
+    if (!cleanId) {
+      throw new Error('NIM atau Email wajib diisi.');
     }
 
-    return {
-      user: credential.user,
-      profile: userDoc
-    };
+    let emailToUse = cleanId;
+
+    // Jika input bukan format email (yaitu mahasiswa memasukkan NIM)
+    if (!cleanId.includes('@')) {
+      const q = query(collection(db, 'users'), where('nim', '==', cleanId));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        throw new Error(`NIM "${cleanId}" tidak ditemukan. Pastikan NIM Anda sudah terdaftar.`);
+      }
+      const userData = snap.docs[0].data();
+      if (!userData.email) {
+        throw new Error(`Akun dengan NIM "${cleanId}" tidak memiliki email terdaftar.`);
+      }
+      emailToUse = userData.email;
+    }
+
+    try {
+      const credential = await signInWithEmailAndPassword(auth, emailToUse.trim().toLowerCase(), password);
+      let userDoc = await this.getUserProfile(credential.user.uid);
+
+      // Jika akun berstatus tidak aktif, cegah login dan langsung logout
+      if (userDoc && userDoc.isActive === false) {
+        await signOut(auth);
+        throw new Error('Akun Anda berstatus Tidak Aktif. Anda tidak dapat login ke sistem. Silakan hubungi Super Admin.');
+      }
+
+      // Jika akun terdaftar di Firebase Auth namun belum memiliki dokumen profil di Firestore
+      if (!userDoc) {
+        const initialProfile = {
+          uid: credential.user.uid,
+          email: (credential.user.email || emailToUse).trim().toLowerCase(),
+          namaLengkap: credential.user.displayName || emailToUse.split('@')[0],
+          namaPanggilan: credential.user.displayName?.split(' ')[0] || emailToUse.split('@')[0],
+          nim: cleanId.includes('@') ? '' : cleanId,
+          kelasId: '',
+          kelasNama: '',
+          role: 'USER',
+          tabungan: 0,
+          telegramChatId: '',
+          telegramConnected: false,
+          isActive: true,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+        await setDoc(doc(db, 'users', credential.user.uid), initialProfile);
+        userDoc = initialProfile;
+      }
+
+      return {
+        user: credential.user,
+        profile: userDoc
+      };
+    } catch (err) {
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        throw new Error('Kata sandi salah. Silakan periksa kembali kata sandi Anda.');
+      } else if (err.code === 'auth/user-not-found') {
+        throw new Error('Akun tidak ditemukan. Pastikan NIM atau email Anda sudah benar.');
+      }
+      throw err;
+    }
   },
 
   /**
@@ -144,9 +185,46 @@ export const authService = {
   },
 
   /**
-   * Send password reset email
+   * Send password reset email using Email or NIM
    */
-  async resetPassword(email) {
-    return await sendPasswordResetEmail(auth, email.trim());
+  async resetPassword(identifier) {
+    const cleanId = String(identifier || '').trim();
+    let emailToUse = cleanId;
+
+    if (!cleanId.includes('@')) {
+      const q = query(collection(db, 'users'), where('nim', '==', cleanId));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        throw new Error(`NIM "${cleanId}" tidak ditemukan.`);
+      }
+      const userData = snap.docs[0].data();
+      if (!userData.email) {
+        throw new Error(`Akun dengan NIM "${cleanId}" belum memiliki email terdaftar.`);
+      }
+      emailToUse = userData.email;
+    }
+
+    return await sendPasswordResetEmail(auth, emailToUse.trim().toLowerCase());
+  },
+
+  /**
+   * Change password for the currently authenticated user
+   * Re-authenticates with current password before updating to new password
+   */
+  async changePassword(currentPassword, newPassword) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('Sesi masuk telah berakhir. Silakan login kembali.');
+    }
+    if (!currentUser.email) {
+      throw new Error('Email akun tidak ditemukan.');
+    }
+
+    // Re-authenticate
+    const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+    await reauthenticateWithCredential(currentUser, credential);
+
+    // Update password
+    await updatePassword(currentUser, newPassword);
   }
 };

@@ -90,49 +90,97 @@
       </div>
     </div>
 
-    <!-- Pairing Code Card (Displayed when user clicks connect) -->
-    <div v-if="pairingCode && !authStore.userProfile?.telegramConnected" class="bg-sky-50 border border-sky-200 rounded-3xl p-6 sm:p-8 space-y-4">
-      <div class="flex items-start justify-between">
-        <div>
-          <span class="text-xs font-bold uppercase tracking-wider text-sky-700">Langkah Verifikasi Bot</span>
-          <h3 class="text-lg font-bold text-slate-900 mt-1">Kode Pengaitan Sementara Anda</h3>
+    <!-- Pairing & Connection Options (Displayed when not connected) -->
+    <div v-if="!authStore.userProfile?.telegramConnected" class="space-y-4">
+      <!-- Option 1: Manual Chat ID (Recommended & Direct) -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 sm:p-8 space-y-4 transition-colors">
+        <div class="flex items-center gap-2.5">
+          <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">1</span>
+          <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Hubungkan Langsung dengan Chat ID Telegram (Paling Cepat)</h3>
         </div>
-        <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-sky-200/80 text-sky-800">
-          Berlaku 15 Menit
-        </span>
-      </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+          Anda dapat langsung memasukkan Telegram Chat ID Anda di bawah ini tanpa harus menunggu respon bot.
+        </p>
 
-      <div class="p-4 bg-white rounded-2xl border border-sky-200 text-center space-y-2">
-        <p class="text-xs text-slate-500">Kirim perintah berikut ke bot Telegram resmi MyKas:</p>
-        <div class="inline-block px-5 py-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-lg font-bold tracking-widest select-all">
-          /start {{ pairingCode }}
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 space-y-1.5">
+          <p class="font-semibold text-slate-800 dark:text-slate-200">💡 Cara mengetahui Chat ID Anda:</p>
+          <ol class="list-decimal list-inside space-y-1 text-slate-500 dark:text-slate-400 pl-1">
+            <li>Buka Telegram dan cari bot: <a href="https://t.me/userinfobot" target="_blank" class="text-sky-600 font-semibold underline">@userinfobot</a> atau <a href="https://t.me/raw_data_bot" target="_blank" class="text-sky-600 font-semibold underline">@raw_data_bot</a></li>
+            <li>Klik <strong>Start</strong> / kirim pesan apa saja.</li>
+            <li>Bot akan membalas angka <strong>Id</strong> Anda (contoh: <code>1234567890</code>).</li>
+            <li>Salin angka tersebut dan tempelkan ke kolom input di bawah ini.</li>
+          </ol>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+          <el-input
+            v-model="manualChatId"
+            placeholder="Masukkan angka Telegram Chat ID Anda (contoh: 123456789)"
+            class="flex-1"
+            size="large"
+          />
+          <el-button
+            type="primary"
+            size="large"
+            :loading="bindingManual"
+            @click="handleManualBind"
+            class="!rounded-xl !bg-emerald-600 hover:!bg-emerald-700 !border-none !font-bold"
+          >
+            Simpan & Hubungkan
+          </el-button>
         </div>
       </div>
 
-      <!-- Quick Deep Link Button -->
-      <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-        <a
-          :href="pairingDeepLink"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs shadow-md shadow-sky-500/20"
-        >
-          <el-icon><Promotion /></el-icon> Buka Bot Telegram Otomatis
-        </a>
+      <!-- Option 2: Automated Pairing Code via Bot -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 sm:p-8 space-y-4 transition-colors">
+        <div class="flex items-center gap-2.5">
+          <span class="w-6 h-6 rounded-full bg-sky-100 text-sky-700 text-xs font-bold flex items-center justify-center">2</span>
+          <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Hubungkan via Kode Pengaitan Bot</h3>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+          Jika bot Telegram lokal sedang aktif dijalankan via terminal, Anda dapat menggunakan tautan otomatis.
+        </p>
 
-        <!-- Manual Chat ID binding option if webhook/bot is in manual mode -->
-        <el-button size="small" text type="primary" @click="manualBindVisible = !manualBindVisible">
-          Input Chat ID Manual (Pengujian Dev)
-        </el-button>
-      </div>
+        <div v-if="!pairingCode">
+          <el-button
+            type="primary"
+            plain
+            class="!rounded-xl !text-xs !font-bold"
+            :loading="generatingCode"
+            @click="handleGeneratePairing"
+          >
+            Buat Kode Pengaitan Bot
+          </el-button>
+        </div>
 
-      <!-- Manual Input Option -->
-      <div v-if="manualBindVisible" class="pt-4 border-t border-sky-200 flex gap-2">
-        <el-input v-model="manualChatId" placeholder="Masukkan Telegram Chat ID Anda" class="!w-64" />
-        <el-button type="primary" :loading="bindingManual" @click="handleManualBind" class="!rounded-xl !bg-sky-600 !border-none">
-          Simpan Chat ID
-        </el-button>
+        <div v-else class="space-y-3 p-4 bg-sky-50 dark:bg-sky-950/30 rounded-2xl border border-sky-200 dark:border-sky-800">
+          <p class="text-xs text-slate-600 dark:text-slate-300">Kirim perintah berikut ke bot Telegram resmi MyKas:</p>
+          <div class="p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-base font-bold tracking-widest text-center select-all">
+            /start {{ pairingCode }}
+          </div>
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <a
+              :href="pairingDeepLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs"
+            >
+              <el-icon><Promotion /></el-icon> Buka Bot Telegram
+            </a>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- GitHub Actions Automation Info Card -->
+    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl sm:rounded-3xl p-6 sm:p-7 text-white space-y-2.5 shadow-md">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <h3 class="text-sm font-bold text-white tracking-tight">Otomasi Pengiriman Notifikasi via GitHub Actions</h3>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Sistem pengingat kas MyKas beroperasi otomatis melalui <strong>GitHub Actions</strong> setiap hari pukul <strong>07:00 WIB</strong> tanpa biaya hosting. Notifikasi pertemuan H-1 dan konfirmasi pembayaran akan otomatis masuk ke Telegram Anda.
+      </p>
     </div>
 
     <!-- Bot Usage Instructions & Features -->

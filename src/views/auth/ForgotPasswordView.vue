@@ -17,12 +17,11 @@
         @submit.prevent="handleReset"
         size="large"
       >
-        <el-form-item label="Email Terdaftar" prop="email">
+        <el-form-item label="NIM Mahasiswa atau Email Terdaftar" prop="identifier">
           <el-input
-            v-model="form.email"
-            type="email"
-            placeholder="email"
-            :prefix-icon="Message"
+            v-model="form.identifier"
+            placeholder="Masukkan NIM Anda atau Email"
+            :prefix-icon="User"
           />
         </el-form-item>
 
@@ -50,19 +49,18 @@
 import { ref, reactive } from 'vue';
 import { authService } from '../../services/authService.js';
 import { ElMessage } from 'element-plus';
-import { Message, Key } from '@element-plus/icons-vue';
+import { User, Key } from '@element-plus/icons-vue';
 
 const formRef = ref(null);
 const isLoading = ref(false);
 
 const form = reactive({
-  email: ''
+  identifier: ''
 });
 
 const rules = {
-  email: [
-    { required: true, message: 'Email wajib diisi', trigger: 'blur' },
-    { type: 'email', message: 'Format email tidak valid', trigger: 'blur' }
+  identifier: [
+    { required: true, message: 'NIM atau Email wajib diisi', trigger: 'blur' }
   ]
 };
 
@@ -74,8 +72,8 @@ async function handleReset() {
 
     isLoading.value = true;
     try {
-      await authService.resetPassword(form.email);
-      ElMessage.success('Tautan reset kata sandi telah dikirim ke email Anda.');
+      await authService.resetPassword(form.identifier);
+      ElMessage.success('Tautan reset kata sandi telah dikirim ke email akun terdaftar.');
     } catch (err) {
       ElMessage.error(err.message || 'Gagal mengirim email reset.');
     } finally {

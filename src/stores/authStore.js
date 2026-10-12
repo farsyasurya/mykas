@@ -28,7 +28,13 @@ export const useAuthStore = defineStore('auth', () => {
           user.value = firebaseUser;
           try {
             const profile = await authService.getUserProfile(firebaseUser.uid);
-            userProfile.value = profile;
+            if (profile && profile.isActive === false) {
+              await authService.logout();
+              user.value = null;
+              userProfile.value = null;
+            } else {
+              userProfile.value = profile;
+            }
           } catch (err) {
             console.error('Failed to load user profile:', err);
             userProfile.value = null;
@@ -44,10 +50,10 @@ export const useAuthStore = defineStore('auth', () => {
     });
   }
 
-  async function login(email, password) {
+  async function login(identifier, password) {
     isLoading.value = true;
     try {
-      const res = await authService.login(email, password);
+      const res = await authService.login(identifier, password);
       user.value = res.user;
       userProfile.value = res.profile;
       return res;
@@ -74,6 +80,10 @@ export const useAuthStore = defineStore('auth', () => {
     userProfile.value = null;
   }
 
+  async function changePassword(currentPassword, newPassword) {
+    return await authService.changePassword(currentPassword, newPassword);
+  }
+
   async function refreshProfile() {
     if (user.value) {
       userProfile.value = await authService.getUserProfile(user.value.uid);
@@ -96,6 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
+    changePassword,
     refreshProfile
   };
 });

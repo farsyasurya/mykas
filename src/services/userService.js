@@ -36,10 +36,12 @@ export const userService = {
 
   /**
    * Get only students (role: USER) belonging to a class (excludes ADMIN and SUPER_ADMIN)
+   * @param {string} classId
+   * @param {boolean} onlyActive - defaults to true (exclude inactive students)
    */
-  async getStudentsByClass(classId) {
+  async getStudentsByClass(classId, onlyActive = true) {
     const list = await this.getUsersByClass(classId);
-    return list.filter(u => u.role === 'USER');
+    return list.filter(u => u.role === 'USER' && (!onlyActive || u.isActive !== false));
   },
 
   /**
@@ -78,6 +80,19 @@ export const userService = {
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, {
       role: newRole,
+      updatedAt: serverTimestamp()
+    });
+  },
+
+  /**
+   * Update user active status (SUPER_ADMIN only)
+   * @param {string} userId
+   * @param {boolean} isActive
+   */
+  async updateUserStatus(userId, isActive) {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      isActive: Boolean(isActive),
       updatedAt: serverTimestamp()
     });
   },

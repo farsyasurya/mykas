@@ -19,13 +19,12 @@
         @submit.prevent="handleLogin"
         size="large"
       >
-        <el-form-item label="Email Mahasiswa / Akun" prop="email">
+        <el-form-item label="NIM Mahasiswa / Akun" prop="identifier">
           <el-input
-            v-model="form.email"
-            type="email"
-            placeholder="nama@kampus.ac.id"
-            :prefix-icon="Message"
-            autocomplete="email"
+            v-model="form.identifier"
+            placeholder="Masukkan NIM Anda (contoh: 231011400123)"
+            :prefix-icon="User"
+            autocomplete="username"
           />
         </el-form-item>
 
@@ -75,11 +74,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../../stores/authStore.js';
 import { ElMessage } from 'element-plus';
-import { Message, Lock } from '@element-plus/icons-vue';
+import { User, Lock } from '@element-plus/icons-vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -88,15 +87,20 @@ const authStore = useAuthStore();
 const formRef = ref(null);
 const isLoading = ref(false);
 
+onMounted(() => {
+  if (route.query.error === 'inactive') {
+    ElMessage.error('Akun Anda berstatus Tidak Aktif. Anda tidak dapat masuk ke sistem. Silakan hubungi Super Admin.');
+  }
+});
+
 const form = reactive({
-  email: '',
+  identifier: '',
   password: ''
 });
 
 const rules = {
-  email: [
-    { required: true, message: 'Email wajib diisi', trigger: 'blur' },
-    { type: 'email', message: 'Format email tidak valid', trigger: 'blur' }
+  identifier: [
+    { required: true, message: 'NIM atau Email wajib diisi', trigger: 'blur' }
   ],
   password: [
     { required: true, message: 'Kata sandi wajib diisi', trigger: 'blur' },
@@ -112,7 +116,7 @@ async function handleLogin() {
 
     isLoading.value = true;
     try {
-      const res = await authStore.login(form.email, form.password);
+      const res = await authStore.login(form.identifier, form.password);
       ElMessage.success(`Selamat datang, ${res.profile?.namaPanggilan || res.profile?.namaLengkap || 'Mahasiswa'}!`);
 
       const redirectPath = route.query.redirect;
@@ -125,7 +129,7 @@ async function handleLogin() {
       }
     } catch (err) {
       console.error(err);
-      ElMessage.error(err.message || 'Gagal masuk. Periksa email dan kata sandi Anda.');
+      ElMessage.error(err.message || 'Gagal masuk. Periksa NIM atau kata sandi Anda.');
     } finally {
       isLoading.value = false;
     }

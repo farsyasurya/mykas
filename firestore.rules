@@ -12,7 +12,9 @@ service cloud.firestore {
     // Authenticated users can create/update their profile and manage users
     match /users/{userId} {
       allow read: if true;
-      allow create, update: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['telegramChatId', 'telegramUsername', 'telegramConnected', 'telegramPairingCode', 'updatedAt']);
       allow delete: if isAuthenticated();
     }
 
