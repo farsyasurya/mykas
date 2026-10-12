@@ -1,19 +1,7 @@
 <template>
   <aside
-    class="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-full lg:z-auto"
-    :class="isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'"
+    class="hidden lg:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 flex-shrink-0 h-full"
   >
-    <!-- Mobile header inside drawer -->
-    <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 lg:hidden">
-      <div class="flex items-center gap-2.5">
-        <img src="/mykas.png" alt="MyKas Logo" class="w-8 h-8 rounded-lg object-contain" />
-        <span class="font-bold text-slate-900 dark:text-white text-lg">MyKas Menu</span>
-      </div>
-      <button @click="$emit('close')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-        <el-icon :size="20"><Close /></el-icon>
-      </button>
-    </div>
-
     <!-- Scrollable Nav Links -->
     <div class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
       <!-- Section: Navigation for Admin / Super Admin -->
@@ -213,22 +201,10 @@
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '../../stores/authStore.js';
 
-defineProps({
-  isOpen: {
-    type: Boolean,
-    default: false
-  }
-});
-
-const emit = defineEmits(['close']);
 const route = useRoute();
 const authStore = useAuthStore();
 
 function isCurrentRoute(path) {
   return route.path === path;
-}
-
-function handleLinkClick() {
-  emit('close');
 }
 </script>

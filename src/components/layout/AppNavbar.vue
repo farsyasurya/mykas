@@ -1,24 +1,14 @@
 <template>
   <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm transition-colors duration-200">
     <div class="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-      <!-- Left side: Mobile menu toggle & brand -->
-      <div class="flex items-center gap-3">
-        <button
-          @click="$emit('toggle-sidebar')"
-          class="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none transition-colors"
-          title="Buka Navigasi Lengkap"
-        >
-          <el-icon :size="20"><Menu /></el-icon>
-        </button>
-
-        <div class="flex items-center gap-2.5">
-          <img src="/mykas.png" alt="MyKas Logo" class="w-9 h-9 rounded-xl object-contain drop-shadow-sm" />
-          <div>
-            <span class="font-extrabold text-xl tracking-tight text-slate-900 dark:text-slate-50">My<span class="text-emerald-600 dark:text-emerald-400">Kas</span></span>
-            <span v-if="authStore.userProfile?.kelasNama" class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
-              {{ authStore.userProfile.kelasNama }}
-            </span>
-          </div>
+      <!-- Left side: Brand Logo -->
+      <div class="flex items-center gap-2.5">
+        <img src="/mykas.png" alt="MyKas Logo" class="w-9 h-9 rounded-xl object-contain drop-shadow-sm" />
+        <div>
+          <span class="font-extrabold text-xl tracking-tight text-slate-900 dark:text-slate-50">My<span class="text-emerald-600 dark:text-emerald-400">Kas</span></span>
+          <span v-if="authStore.userProfile?.kelasNama" class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
+            {{ authStore.userProfile.kelasNama }}
+          </span>
         </div>
       </div>
 
@@ -112,8 +102,6 @@ import { Sunny, Moon } from '@element-plus/icons-vue';
 const authStore = useAuthStore();
 const router = useRouter();
 const { isDark, toggleTheme } = useTheme();
-
-defineEmits(['toggle-sidebar']);
 
 const userInitial = computed(() => {
   const name = authStore.userProfile?.namaPanggilan || authStore.userProfile?.namaLengkap || 'U';

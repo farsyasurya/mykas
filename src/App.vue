@@ -2,18 +2,11 @@
   <div class="h-[100dvh] min-h-[100dvh] w-full max-w-full overflow-hidden flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200">
     <!-- Render application layout when logged in -->
     <template v-if="authStore.isAuthenticated">
-      <AppNavbar class="flex-shrink-0" @toggle-sidebar="sidebarOpen = !sidebarOpen" />
+      <AppNavbar class="flex-shrink-0" />
 
       <div class="flex-1 flex min-h-0 overflow-hidden relative w-full max-w-full">
-        <!-- Backdrop for mobile drawer (when sidebar opened manually) -->
-        <div
-          v-if="sidebarOpen"
-          @click="sidebarOpen = false"
-          class="fixed inset-0 bg-slate-900/60 z-30 lg:hidden backdrop-blur-sm transition-opacity"
-        ></div>
-
-        <!-- Desktop Sidebar Navigation -->
-        <AppSidebar :is-open="sidebarOpen" @close="sidebarOpen = false" />
+        <!-- Desktop Sidebar Navigation (Only on lg screens) -->
+        <AppSidebar />
 
         <!-- Main Content Area (pb-24 on mobile so bottom nav does not overlap) -->
         <main class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3.5 sm:p-6 lg:p-8 pb-24 lg:pb-8 flex flex-col justify-between bg-slate-50 dark:bg-slate-950 transition-colors duration-200 w-full max-w-full">
@@ -52,7 +45,6 @@ import AppFooter from './components/layout/AppFooter.vue';
 
 const authStore = useAuthStore();
 const theme = useTheme();
-const sidebarOpen = ref(false);
 
 onMounted(() => {
   theme.initTheme();
