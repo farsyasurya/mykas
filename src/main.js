@@ -9,16 +9,16 @@ import App from './App.vue';
 import router from './router';
 import './assets/main.css';
 
-// Bersihkan Service Worker lama yang mungkin tertinggal di localhost:5173 dari proyek lain
+// Registrasi Service Worker untuk PWA
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    for (const registration of registrations) {
-      registration.unregister().then((unregistered) => {
-        if (unregistered) {
-          console.info('[MyKas] Berhasil menghapus Service Worker lama dari localhost:', registration.scope);
-        }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.info('[MyKas PWA] Service Worker aktif:', registration.scope);
+      })
+      .catch((err) => {
+        console.warn('[MyKas PWA] Gagal registrasi Service Worker:', err);
       });
-    }
   });
 }
 

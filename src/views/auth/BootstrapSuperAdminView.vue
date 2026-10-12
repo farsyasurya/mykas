@@ -2,8 +2,8 @@
   <div class="w-full max-w-lg my-6">
     <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
       <div class="text-center mb-6">
-        <div class="inline-flex w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-600 items-center justify-center mb-4">
-          <el-icon :size="28"><Lock /></el-icon>
+        <div class="inline-flex items-center justify-center mb-4">
+          <img src="/mykas.png" alt="MyKas Logo" class="w-14 h-14 rounded-2xl object-contain drop-shadow-md" />
         </div>
         <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Setup Super Admin Pertama</h1>
         <p class="text-slate-500 text-sm mt-1">Mekanisme Bootstrap Terproteksi Aplikasi MyKas</p>

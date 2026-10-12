@@ -3,8 +3,8 @@
     <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
       <!-- Brand Logo -->
       <div class="text-center mb-8">
-        <div class="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 items-center justify-center text-white shadow-lg shadow-emerald-500/25 mb-4">
-          <el-icon :size="30"><Wallet /></el-icon>
+        <div class="inline-flex items-center justify-center mb-4">
+          <img src="/mykas.png" alt="MyKas Logo" class="w-16 h-16 rounded-2xl object-contain drop-shadow-md hover:scale-105 transition-transform" />
         </div>
         <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Masuk ke MyKas</h1>
         <p class="text-slate-500 text-sm mt-1">Aplikasi Manajemen Kas Mahasiswa Kelas</p>

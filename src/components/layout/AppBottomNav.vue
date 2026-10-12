@@ -100,7 +100,7 @@
       <template #header>
         <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2">
-            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+            <img src="/mykas.png" alt="MyKas Logo" class="w-5 h-5 rounded-md object-contain" />
             <h3 class="font-extrabold text-sm text-slate-900 dark:text-slate-100">Menu Lainnya</h3>
           </div>
           <button

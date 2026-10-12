@@ -12,9 +12,7 @@
         </button>
 
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20">
-            <el-icon :size="20"><Wallet /></el-icon>
-          </div>
+          <img src="/mykas.png" alt="MyKas Logo" class="w-9 h-9 rounded-xl object-contain drop-shadow-sm" />
           <div>
             <span class="font-extrabold text-xl tracking-tight text-slate-900 dark:text-slate-50">My<span class="text-emerald-600 dark:text-emerald-400">Kas</span></span>
             <span v-if="authStore.userProfile?.kelasNama" class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">

@@ -5,10 +5,8 @@
   >
     <!-- Mobile header inside drawer -->
     <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800 lg:hidden">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white">
-          <el-icon><Wallet /></el-icon>
-        </div>
+      <div class="flex items-center gap-2.5">
+        <img src="/mykas.png" alt="MyKas Logo" class="w-8 h-8 rounded-lg object-contain" />
         <span class="font-bold text-slate-900 dark:text-white text-lg">MyKas Menu</span>
       </div>
       <button @click="$emit('close')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
