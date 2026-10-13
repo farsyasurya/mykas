@@ -190,18 +190,77 @@
             <p class="text-[11px] text-slate-400">Tentukan nominal setoran dan metode transaksi</p>
           </div>
 
-          <!-- Nominal Uang yang Disetor -->
+          <!-- 1. Opsi Bayar Pakai Tabungan Mahasiswa (Muncul jika punya saldo) -->
+          <div
+            v-if="selectedStudent && (selectedStudent.tabungan || 0) > 0"
+            class="p-3.5 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/30 space-y-2.5 transition-all w-full min-w-0"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <el-icon :size="16"><Coin /></el-icon>
+                </div>
+                <div class="min-w-0">
+                  <span class="text-xs font-bold text-slate-900 dark:text-slate-100 block truncate">Pakai Saldo Tabungan</span>
+                  <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                    Tersedia: <strong class="text-amber-700 dark:text-amber-300 font-mono">{{ formatRupiah(selectedStudent.tabungan) }}</strong>
+                  </span>
+                </div>
+              </div>
+              <el-switch
+                v-model="useTabungan"
+                active-text="Pakai"
+                inactive-text="Tidak"
+                inline-prompt
+                @change="handleTabunganToggle"
+              />
+            </div>
+
+            <!-- Rincian Pemotongan Saldo Tabungan -->
+            <div v-if="useTabungan" class="pt-2 border-t border-amber-200/60 dark:border-amber-900/40 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-600 dark:text-slate-300">Tabungan Dipotong:</span>
+                <span class="font-bold text-amber-700 dark:text-amber-300 font-mono">{{ formatRupiah(effectiveTabunganUsed) }}</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <el-input-number
+                  v-model="nominalTabunganDipakai"
+                  :min="0"
+                  :max="maxTabunganUsable"
+                  :step="1000"
+                  class="!w-full"
+                  @change="handleNominalTabunganChange"
+                />
+              </div>
+
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  @click="setTabunganMax"
+                  class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 hover:bg-amber-200"
+                >
+                  Gunakan Maksimal ({{ formatRupiah(maxTabunganUsable) }})
+                </button>
+                <span v-if="sisaKasWajib === 0" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                  ✓ Lunas via Tabungan
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Nominal Uang yang Disetor -->
           <div class="w-full min-w-0">
             <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
               <label class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                Uang Disetor (Rp)
+                {{ useTabungan && sisaKasWajib === 0 ? 'Uang Tambahan Disetor (Rp)' : 'Uang Disetor Tunai / Transfer (Rp)' }}
               </label>
               <button
                 type="button"
                 @click="inputNominal = minRequiredNominal"
                 class="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
               >
-                Pas Kas: {{ formatRupiah(minRequiredNominal) }}
+                {{ sisaKasWajib === 0 ? 'Rp 0 (Lunas Tabungan)' : `Pas Sisa: ${formatRupiah(minRequiredNominal)}` }}
               </button>
             </div>
 
@@ -219,7 +278,7 @@
                 @click="inputNominal = minRequiredNominal"
                 class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
               >
-                Pas Kas
+                {{ sisaKasWajib === 0 ? 'Pas 0' : 'Pas Sisa' }}
               </button>
               <button
                 type="button"
@@ -245,64 +304,76 @@
             </div>
           </div>
 
-          <!-- Metode Pembayaran -->
+          <!-- 3. Metode Pembayaran -->
           <div class="w-full min-w-0">
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
               Metode Transaksi
             </label>
-            <el-radio-group v-model="tipePembayaran" size="default" class="!w-full grid grid-cols-2">
+            <div v-if="useTabungan && (inputNominal || 0) === 0" class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-2">
+              <el-icon><Check /></el-icon>
+              <span>Pembayaran Penuh Menggunakan Saldo Tabungan</span>
+            </div>
+            <el-radio-group v-else v-model="tipePembayaran" size="default" class="!w-full grid grid-cols-2">
               <el-radio-button value="TRANSFER" class="w-full text-center">Transfer / QRIS</el-radio-button>
               <el-radio-button value="CASH" class="w-full text-center">Tunai (Cash)</el-radio-button>
             </el-radio-group>
           </div>
 
-          <!-- Tanggal & Waktu Pembayaran (Created At) -->
+          <!-- 4. Tanggal Pembayaran (Date only - Hide jam) -->
           <div class="w-full min-w-0">
             <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
               <label class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                Waktu Pembayaran
+                Tanggal Pembayaran
               </label>
               <button
                 type="button"
-                @click="paymentDateTime = new Date()"
+                @click="paymentDate = getTodayDateString()"
                 class="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
               >
-                Set Sekarang
+                Set Hari Ini
               </button>
             </div>
             <el-date-picker
-              v-model="paymentDateTime"
-              type="datetime"
-              placeholder="Pilih tanggal & jam transaksi"
-              format="YYYY-MM-DD HH:mm"
+              v-model="paymentDate"
+              type="date"
+              placeholder="Pilih tanggal transaksi"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
               class="!w-full"
             />
           </div>
 
-          <!-- Real-Time Allocation Display Box (Compact) -->
+          <!-- 5. Real-Time Allocation Display Box (Compact) -->
           <div class="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 space-y-2 w-full min-w-0">
             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
               Alokasi Keuangan Otomatis
             </span>
 
             <div class="flex items-center justify-between text-xs py-1 border-b border-slate-200/60 dark:border-slate-700/60">
-              <span class="text-slate-600 dark:text-slate-300">Masuk Kas Kelas ({{ selectedMeetingIds.length }} Ptm):</span>
+              <span class="text-slate-600 dark:text-slate-300">Kebutuhan Kas Kelas ({{ selectedMeetingIds.length }} Ptm):</span>
               <span class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">{{ formatRupiah(calculatedKasIn) }}</span>
             </div>
 
+            <div v-if="effectiveTabunganUsed > 0" class="flex items-center justify-between text-xs py-1 border-b border-slate-200/60 dark:border-slate-700/60 text-amber-700 dark:text-amber-400">
+              <span>Dipotong dari Tabungan:</span>
+              <span class="font-bold font-mono">- {{ formatRupiah(effectiveTabunganUsed) }}</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs py-1 border-b border-slate-200/60 dark:border-slate-700/60">
+              <span class="text-slate-600 dark:text-slate-300">Setoran Tunai / Transfer:</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200 font-mono">{{ formatRupiah(inputNominal || 0) }}</span>
+            </div>
+
             <div class="flex items-center justify-between text-xs py-1">
-              <span class="text-slate-600 dark:text-slate-300">Masuk Tabungan Mahasiswa:</span>
-              <span
-                class="font-bold font-mono"
-                :class="calculatedTabunganIn > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'"
-              >
-                {{ formatRupiah(calculatedTabunganIn) }}
+              <span class="text-slate-600 dark:text-slate-300">Sisa Saldo Tabungan Mahasiswa:</span>
+              <span class="font-bold text-amber-600 dark:text-amber-400 font-mono">
+                {{ formatRupiah(remainingStudentTabungan) }}
               </span>
             </div>
 
             <div v-if="calculatedTabunganIn > 0" class="text-[11px] text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-900/60 flex items-center gap-1.5 mt-1">
               <el-icon><InfoFilled /></el-icon>
-              <span>Kelebihan <strong>{{ formatRupiah(calculatedTabunganIn) }}</strong> otomatis jadi tabungan.</span>
+              <span>Kelebihan setoran <strong>{{ formatRupiah(calculatedTabunganIn) }}</strong> otomatis ditambahkan ke tabungan.</span>
             </div>
           </div>
         </div>
@@ -330,7 +401,7 @@
     >
       <div class="space-y-3">
         <p class="text-xs text-slate-600">
-          Harap pastikan data setoran kas berikut sudah benar:
+          Harap pastikan data transaksi kas berikut sudah benar:
         </p>
 
         <div class="bg-slate-50 p-3.5 rounded-xl space-y-2 text-xs border border-slate-200">
@@ -343,24 +414,28 @@
             <span class="font-semibold text-slate-800">{{ selectedMeetingIds.length }} Pertemuan</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-500">Metode Pembayaran:</span>
-            <el-tag size="small" type="info">{{ tipePembayaran }}</el-tag>
+            <span class="text-slate-500">Kebutuhan Kas:</span>
+            <span class="font-bold text-emerald-600">{{ formatRupiah(calculatedKasIn) }}</span>
+          </div>
+          <div v-if="effectiveTabunganUsed > 0" class="flex justify-between text-amber-700">
+            <span>Pakai Tabungan:</span>
+            <span class="font-bold font-mono">- {{ formatRupiah(effectiveTabunganUsed) }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-500">Waktu Pembayaran:</span>
-            <span class="font-semibold text-slate-800">{{ formatIndonesianDateTime(paymentDateTime) }}</span>
-          </div>
-          <div class="flex justify-between pt-2 border-t border-slate-200">
-            <span class="text-slate-600">Total Uang Diterima:</span>
+            <span class="text-slate-500">Uang Disetor (Tunai/Transfer):</span>
             <span class="font-bold text-slate-900">{{ formatRupiah(inputNominal || 0) }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-600">Masuk Kas Kelas:</span>
-            <span class="font-bold text-emerald-600">{{ formatRupiah(calculatedKasIn) }}</span>
+            <span class="text-slate-500">Metode Pembayaran:</span>
+            <el-tag size="small" type="info">{{ (inputNominal || 0) === 0 && effectiveTabunganUsed > 0 ? 'TABUNGAN' : tipePembayaran }}</el-tag>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-600">Masuk Tabungan:</span>
-            <span class="font-bold text-amber-600">{{ formatRupiah(calculatedTabunganIn) }}</span>
+            <span class="text-slate-500">Tanggal Pembayaran:</span>
+            <span class="font-semibold text-slate-800">{{ formatIndonesianDate(paymentDate) }}</span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-slate-200">
+            <span class="text-slate-600">Sisa Akhir Tabungan Mahasiswa:</span>
+            <span class="font-bold text-amber-600 font-mono">{{ formatRupiah(remainingStudentTabungan) }}</span>
           </div>
         </div>
       </div>
@@ -391,9 +466,9 @@ import { meetingService } from '../../services/meetingService.js';
 import { classService } from '../../services/classService.js';
 import { paymentService } from '../../services/paymentService.js';
 import { formatRupiah } from '../../utils/currency.js';
-import { formatIndonesianDate, formatIndonesianDateTime } from '../../utils/date.js';
+import { formatIndonesianDate } from '../../utils/date.js';
 import { ElMessage } from 'element-plus';
-import { CirclePlus, InfoFilled, Check } from '@element-plus/icons-vue';
+import { CirclePlus, InfoFilled, Check, Coin } from '@element-plus/icons-vue';
 import confetti from 'canvas-confetti';
 
 const router = useRouter();
@@ -412,7 +487,18 @@ const selectedStudentId = ref('');
 const selectedMeetingIds = ref([]);
 const inputNominal = ref(0);
 const tipePembayaran = ref('TRANSFER');
-const paymentDateTime = ref(new Date());
+
+function getTodayDateString() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+const paymentDate = ref(getTodayDateString());
+const useTabungan = ref(false);
+const nominalTabunganDipakai = ref(0);
 
 const runningSemester = computed(() => {
   return currentClass.value?.semesterAktif || authStore.userProfile?.kelasSemester || 'Semester 1 2026/2027';
@@ -420,6 +506,10 @@ const runningSemester = computed(() => {
 
 const selectedStudent = computed(() => {
   return studentsList.value.find(s => s.id === selectedStudentId.value) || null;
+});
+
+const studentTabungan = computed(() => {
+  return Number(selectedStudent.value?.tabungan) || 0;
 });
 
 // Pertemuan khusus semester yang sedang berjalan
@@ -433,10 +523,6 @@ const availableUnpaidMeetings = computed(() => {
   return activeSemesterMeetings.value.filter(m => !paidMeetingIdsSet.value.has(m.id));
 });
 
-const minRequiredNominal = computed(() => {
-  return calculatedKasIn.value;
-});
-
 const calculatedKasIn = computed(() => {
   return selectedMeetingIds.value.reduce((total, id) => {
     const meeting = meetingsList.value.find(m => m.id === id);
@@ -445,10 +531,65 @@ const calculatedKasIn = computed(() => {
   }, 0);
 });
 
+const maxTabunganUsable = computed(() => {
+  return Math.min(studentTabungan.value, calculatedKasIn.value);
+});
+
+const effectiveTabunganUsed = computed(() => {
+  if (!useTabungan.value) return 0;
+  return Math.min(Math.max(0, nominalTabunganDipakai.value), maxTabunganUsable.value);
+});
+
+const sisaKasWajib = computed(() => {
+  return Math.max(0, calculatedKasIn.value - effectiveTabunganUsed.value);
+});
+
+const minRequiredNominal = computed(() => {
+  return sisaKasWajib.value;
+});
+
 const calculatedTabunganIn = computed(() => {
-  const diff = (inputNominal.value || 0) - calculatedKasIn.value;
+  const totalResources = (inputNominal.value || 0) + effectiveTabunganUsed.value;
+  const diff = totalResources - calculatedKasIn.value;
   return Math.max(0, diff);
 });
+
+const remainingStudentTabungan = computed(() => {
+  return studentTabungan.value - effectiveTabunganUsed.value + calculatedTabunganIn.value;
+});
+
+function handleTabunganToggle(val) {
+  if (val) {
+    nominalTabunganDipakai.value = maxTabunganUsable.value;
+    inputNominal.value = sisaKasWajib.value;
+  } else {
+    nominalTabunganDipakai.value = 0;
+    inputNominal.value = calculatedKasIn.value;
+  }
+}
+
+function setTabunganMax() {
+  nominalTabunganDipakai.value = maxTabunganUsable.value;
+  inputNominal.value = sisaKasWajib.value;
+}
+
+function handleNominalTabunganChange() {
+  if (nominalTabunganDipakai.value > maxTabunganUsable.value) {
+    nominalTabunganDipakai.value = maxTabunganUsable.value;
+  }
+  inputNominal.value = sisaKasWajib.value;
+}
+
+function syncNominalWithSelection() {
+  if (useTabungan.value) {
+    if (nominalTabunganDipakai.value > maxTabunganUsable.value) {
+      nominalTabunganDipakai.value = maxTabunganUsable.value;
+    }
+    inputNominal.value = sisaKasWajib.value;
+  } else {
+    inputNominal.value = calculatedKasIn.value;
+  }
+}
 
 onMounted(async () => {
   const classId = authStore.userClassId;
@@ -477,6 +618,8 @@ onMounted(async () => {
 async function handleStudentSelect(studentId) {
   selectedMeetingIds.value = [];
   inputNominal.value = 0;
+  useTabungan.value = false;
+  nominalTabunganDipakai.value = 0;
   if (!studentId) {
     paidMeetingIdsSet.value = new Set();
     return;
@@ -503,13 +646,12 @@ function toggleMeetingSelection(meetingId) {
     selectedMeetingIds.value.push(meetingId);
   }
 
-  // Otomatis sinkronkan nominal dengan total tarif pertemuan yang dipilih
-  inputNominal.value = minRequiredNominal.value;
+  syncNominalWithSelection();
 }
 
 function selectAllUnpaidMeetings() {
   selectedMeetingIds.value = availableUnpaidMeetings.value.map(m => m.id);
-  inputNominal.value = minRequiredNominal.value;
+  syncNominalWithSelection();
 }
 
 function openConfirmationDialog() {
@@ -521,8 +663,9 @@ function openConfirmationDialog() {
     ElMessage.warning('Pilih minimal satu pertemuan kas yang dibayar');
     return;
   }
-  if ((inputNominal.value || 0) < minRequiredNominal.value) {
-    ElMessage.warning(`Nominal setoran kurang dari total kas untuk ${selectedMeetingIds.value.length} pertemuan`);
+  const totalPaid = (inputNominal.value || 0) + effectiveTabunganUsed.value;
+  if (totalPaid < calculatedKasIn.value) {
+    ElMessage.warning(`Total dana (setoran + tabungan) kurang dari total kas untuk ${selectedMeetingIds.value.length} pertemuan`);
     return;
   }
 
@@ -539,11 +682,12 @@ async function handleSavePayment() {
       namaLengkap: selectedStudent.value.namaLengkap,
       namaPanggilan: selectedStudent.value.namaPanggilan,
       nim: selectedStudent.value.nim,
-      nominalPembayaran: inputNominal.value,
+      nominalPembayaran: inputNominal.value || 0,
+      nominalDariTabungan: effectiveTabunganUsed.value,
       meetingIds: selectedMeetingIds.value,
       tarifKas: calculatedKasIn.value,
-      tipePembayaran: tipePembayaran.value,
-      createdAt: paymentDateTime.value ? new Date(paymentDateTime.value) : new Date(),
+      tipePembayaran: (inputNominal.value || 0) === 0 && effectiveTabunganUsed.value > 0 ? 'TABUNGAN' : tipePembayaran.value,
+      createdAt: paymentDate.value ? new Date(paymentDate.value + 'T12:00:00') : new Date(),
       createdBy: authStore.user?.uid
     });
 

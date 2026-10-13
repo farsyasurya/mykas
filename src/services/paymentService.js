@@ -94,6 +94,7 @@ export const paymentService = {
     namaPanggilan,
     nim,
     nominalPembayaran,
+    nominalDariTabungan = 0,
     meetingIds,
     tarifKas = 7000,
     tipePembayaran = 'TRANSFER',
@@ -104,7 +105,8 @@ export const paymentService = {
       throw new Error('Data pembayaran tidak lengkap (kelas, mahasiswa, atau pertemuan belum dipilih).');
     }
 
-    const nominal = parseInt(nominalPembayaran, 10);
+    const nominal = parseInt(nominalPembayaran, 10) || 0;
+    const pakaiTabungan = parseInt(nominalDariTabungan, 10) || 0;
     const jumlahPertemuan = meetingIds.length;
 
     // Ambil tarif kas riil dari masing-masing pertemuan di database 'meetings'
@@ -121,16 +123,21 @@ export const paymentService = {
 
     // Gunakan total tarif riil dari meetings, atau fallback jika tidak ditemukan
     const totalMasukKas = sumTarifKas > 0 ? sumTarifKas : (jumlahPertemuan * (parseInt(tarifKas, 10) || 7000));
+    const totalDana = nominal + pakaiTabungan;
 
-    if (isNaN(nominal) || nominal <= 0) {
+    if (nominal < 0 || pakaiTabungan < 0) {
+      throw new Error('Nominal pembayaran dan tabungan tidak boleh bernilai negatif.');
+    }
+
+    if (totalDana <= 0) {
       throw new Error('Nominal pembayaran harus berupa angka positif.');
     }
 
-    if (nominal < totalMasukKas) {
-      throw new Error(`Nominal pembayaran (Rp ${nominal.toLocaleString('id-ID')}) kurang dari total kas untuk ${jumlahPertemuan} pertemuan yang dipilih (Rp ${totalMasukKas.toLocaleString('id-ID')}).`);
+    if (totalDana < totalMasukKas) {
+      throw new Error(`Total dana (setoran Rp ${nominal.toLocaleString('id-ID')} + tabungan Rp ${pakaiTabungan.toLocaleString('id-ID')}) kurang dari total kas untuk ${jumlahPertemuan} pertemuan yang dipilih (Rp ${totalMasukKas.toLocaleString('id-ID')}).`);
     }
 
-    const totalMasukTabungan = nominal - totalMasukKas;
+    const totalMasukTabungan = totalDana - totalMasukKas;
 
     // Check user's previous payments to ensure none of the selected meetings are already paid
     const existingPayments = await this.getPaymentsByUser(userId);
@@ -151,7 +158,10 @@ export const paymentService = {
     const userRef = doc(db, 'users', userId);
     const paymentRef = doc(collection(db, 'payments'));
     const savingsTxnRef = doc(collection(db, 'savingsTransactions'));
+    const deductSavingsTxnRef = doc(collection(db, 'savingsTransactions'));
     const auditRef = doc(collection(db, 'auditLogs'));
+
+    const paymentDate = createdAt ? (createdAt instanceof Date ? createdAt : new Date(createdAt)) : serverTimestamp();
 
     return await runTransaction(db, async (transaction) => {
       const classDoc = await transaction.get(classRef);
@@ -167,8 +177,12 @@ export const paymentService = {
       const currentClassSaldo = Number(classDoc.data().saldo) || 0;
       const currentUserTabungan = Number(userDoc.data().tabungan) || 0;
 
+      if (pakaiTabungan > currentUserTabungan) {
+        throw new Error(`Saldo tabungan mahasiswa tidak mencukupi (Tersedia: Rp ${currentUserTabungan.toLocaleString('id-ID')}, Diminta: Rp ${pakaiTabungan.toLocaleString('id-ID')}).`);
+      }
+
       const newClassSaldo = currentClassSaldo + totalMasukKas;
-      const newUserTabungan = currentUserTabungan + totalMasukTabungan;
+      const newUserTabungan = currentUserTabungan - pakaiTabungan + totalMasukTabungan;
 
       // 1. Update class saldo
       transaction.update(classRef, {
@@ -191,19 +205,36 @@ export const paymentService = {
         namaPanggilan: namaPanggilan || userDoc.data().namaPanggilan || '',
         nim: nim || userDoc.data().nim || '',
         nominalPembayaran: nominal,
+        nominalDariTabungan: pakaiTabungan,
+        totalDana,
         totalMasukKas,
         totalMasukTabungan,
         meetingIds,
         jumlahPertemuan,
         tarifKas: jumlahPertemuan > 0 ? Math.round(totalMasukKas / jumlahPertemuan) : (Number(tarifKas) || 7000),
-        tipePembayaran,
+        tipePembayaran: nominal === 0 && pakaiTabungan > 0 ? 'TABUNGAN' : tipePembayaran,
+        pakaiTabungan: pakaiTabungan > 0,
         createdBy: createdBy || 'admin',
-        createdAt: createdAt ? (createdAt instanceof Date ? createdAt : new Date(createdAt)) : serverTimestamp(),
+        createdAt: paymentDate,
         updatedAt: serverTimestamp()
       };
       transaction.set(paymentRef, paymentData);
 
-      // 4. If excess goes into savings, create savings transaction
+      // 4a. If savings used to pay kas, create deduction savings transaction
+      if (pakaiTabungan > 0) {
+        transaction.set(deductSavingsTxnRef, {
+          kelasId,
+          userId,
+          paymentId: paymentRef.id,
+          type: 'WITHDRAWAL',
+          nominal: pakaiTabungan,
+          deskripsi: `Pembayaran kas via tabungan (${jumlahPertemuan} pertemuan)`,
+          createdBy: createdBy || 'admin',
+          createdAt: paymentDate
+        });
+      }
+
+      // 4b. If excess goes into savings, create deposit savings transaction
       if (totalMasukTabungan > 0) {
         transaction.set(savingsTxnRef, {
           kelasId,
@@ -213,7 +244,7 @@ export const paymentService = {
           nominal: totalMasukTabungan,
           deskripsi: `Kelebihan pembayaran kas (${jumlahPertemuan} pertemuan)`,
           createdBy: createdBy || 'admin',
-          createdAt: createdAt ? (createdAt instanceof Date ? createdAt : new Date(createdAt)) : serverTimestamp()
+          createdAt: paymentDate
         });
       }
 
@@ -224,6 +255,7 @@ export const paymentService = {
         userId,
         paymentId: paymentRef.id,
         nominal,
+        nominalDariTabungan: pakaiTabungan,
         masukKas: totalMasukKas,
         masukTabungan: totalMasukTabungan,
         jumlahPertemuan,
@@ -235,9 +267,134 @@ export const paymentService = {
         paymentId: paymentRef.id,
         totalMasukKas,
         totalMasukTabungan,
+        nominalDariTabungan: pakaiTabungan,
         newClassSaldo,
         newUserTabungan
       };
     });
+  },
+
+  /**
+   * Delete / rollback a payment transaction atomically
+   * - Restores class saldo (subtracts totalMasukKas)
+   * - Restores user tabungan (adds back nominalDariTabungan, removes totalMasukTabungan)
+   * - Deletes related savingsTransactions (WITHDRAWAL / DEPOSIT linked to this payment)
+   * - Deletes payment document
+   * - Writes audit log
+   */
+  async deletePayment(paymentId, deletedBy = 'admin') {
+    if (!paymentId) throw new Error('ID Pembayaran tidak valid.');
+
+    const paymentRef = doc(db, 'payments', paymentId);
+    const paymentSnap = await getDoc(paymentRef);
+    if (!paymentSnap.exists()) {
+      throw new Error('Data pembayaran tidak ditemukan atau sudah dihapus.');
+    }
+
+    const paymentData = paymentSnap.data();
+    const {
+      kelasId,
+      userId,
+      totalMasukKas = 0,
+      nominalDariTabungan = 0,
+      totalMasukTabungan = 0,
+      meetingIds = []
+    } = paymentData;
+
+    const classRef = doc(db, 'classes', kelasId);
+    const userRef = doc(db, 'users', userId);
+    const auditRef = doc(collection(db, 'auditLogs'));
+
+    // Ambil mutasi tabungan yang pernah dibuat oleh transaksi pembayaran ini
+    const savingsQ = query(
+      collection(db, 'savingsTransactions'),
+      where('paymentId', '==', paymentId)
+    );
+    const savingsSnap = await getDocs(savingsQ);
+
+    return await runTransaction(db, async (transaction) => {
+      const classDoc = await transaction.get(classRef);
+      const userDoc = await transaction.get(userRef);
+
+      const currentClassSaldo = classDoc.exists() ? (Number(classDoc.data().saldo) || 0) : 0;
+      const currentUserTabungan = userDoc.exists() ? (Number(userDoc.data().tabungan) || 0) : 0;
+
+      // 1. Kurangi saldo kelas yang tadinya masuk dari kas ini
+      const newClassSaldo = Math.max(0, currentClassSaldo - Number(totalMasukKas || 0));
+
+      // 2. Kembalikan tabungan:
+      // Tabungan yang pernah dipakai dikembalikan (+), kelebihan yang pernah disetor ditarik (-)
+      const netTabunganRollback = Number(nominalDariTabungan || 0) - Number(totalMasukTabungan || 0);
+      const newUserTabungan = Math.max(0, currentUserTabungan + netTabunganRollback);
+
+      if (classDoc.exists()) {
+        transaction.update(classRef, {
+          saldo: newClassSaldo,
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      if (userDoc.exists()) {
+        transaction.update(userRef, {
+          tabungan: newUserTabungan,
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      // 3. Hapus dokumen savingsTransactions terkait pembayaran ini
+      savingsSnap.docs.forEach((sDoc) => {
+        transaction.delete(doc(db, 'savingsTransactions', sDoc.id));
+      });
+
+      // 4. Hapus dokumen payment
+      transaction.delete(paymentRef);
+
+      // 5. Catat audit log
+      transaction.set(auditRef, {
+        action: 'PAYMENT_DELETED',
+        paymentId,
+        kelasId,
+        userId,
+        namaLengkap: paymentData.namaLengkap || '',
+        nim: paymentData.nim || '',
+        totalMasukKasDibatalkan: totalMasukKas,
+        tabunganDikembalikan: nominalDariTabungan,
+        tabunganDitarikKembali: totalMasukTabungan,
+        meetingIds,
+        deletedBy: deletedBy || 'admin',
+        createdAt: serverTimestamp()
+      });
+
+      return {
+        success: true,
+        restoredClassSaldo: newClassSaldo,
+        restoredUserTabungan: newUserTabungan,
+        returnedTabungan: nominalDariTabungan,
+        cancelledKas: totalMasukKas
+      };
+    });
+  },
+
+  /**
+   * Update payment metadata (e.g. tipe pembayaran or date)
+   */
+  async updatePaymentMeta(paymentId, updates = {}, updatedBy = 'admin') {
+    if (!paymentId) throw new Error('ID Pembayaran tidak valid.');
+    const paymentRef = doc(db, 'payments', paymentId);
+
+    const payload = {
+      updatedAt: serverTimestamp(),
+      updatedBy: updatedBy || 'admin'
+    };
+
+    if (updates.tipePembayaran) payload.tipePembayaran = updates.tipePembayaran;
+    if (updates.createdAt) {
+      payload.createdAt = updates.createdAt instanceof Date ? updates.createdAt : new Date(updates.createdAt);
+    }
+
+    const { updateDoc } = await import('firebase/firestore');
+    await updateDoc(paymentRef, payload);
+
+    return { success: true };
   }
 };

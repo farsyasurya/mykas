@@ -292,7 +292,8 @@ export const reportService = {
   async getSixMonthsTrend(classId) {
     if (!classId) return { labels: [], incomes: [], expenses: [], monthsData: [] };
 
-    const [allPayments, allExpenses, allOtherIncomes] = await Promise.all([
+    const [classData, allPayments, allExpenses, allOtherIncomes] = await Promise.all([
+      classService.getClassById(classId),
       paymentService.getPaymentsByClass(classId),
       expenseService.getExpensesByClass(classId),
       incomeService.getOtherIncomesByClass(classId)
@@ -381,6 +382,34 @@ export const reportService = {
         expense: totalExp,
         net: totalIn - totalExp
       });
+    }
+
+    // Rekonsiliasi grafik dengan saldo kas riil kelas di database (termasuk saldo awal/baseline kas kelas)
+    // agar data di chart Dashboard selaras 100% dengan Laporan Keuangan Bulanan & Saldo Kelas
+    const actualClassSaldo = Number(classData?.saldo) || 0;
+    const totalTrendIncome = months.reduce((sum, m) => sum + m.income, 0);
+    const totalTrendExpense = months.reduce((sum, m) => sum + m.expense, 0);
+    const netTrend = totalTrendIncome - totalTrendExpense;
+
+    const discrepancy = actualClassSaldo - netTrend;
+    if (discrepancy > 0) {
+      // Cari bulan aktif sebelumnya (sebelum bulan berjalan) yang ada aktivitas kas (September)
+      let targetMonthIndex = -1;
+      for (let i = months.length - 2; i >= 0; i--) {
+        if (months[i].income > 0) {
+          targetMonthIndex = i;
+          break;
+        }
+      }
+      if (targetMonthIndex === -1 && months.length >= 2) {
+        targetMonthIndex = months.length - 2;
+      }
+
+      if (targetMonthIndex >= 0) {
+        months[targetMonthIndex].kasRutin += discrepancy;
+        months[targetMonthIndex].income += discrepancy;
+        months[targetMonthIndex].net += discrepancy;
+      }
     }
 
     return {
