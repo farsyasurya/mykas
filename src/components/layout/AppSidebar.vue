@@ -88,7 +88,7 @@
             :class="{ '!bg-emerald-600 !text-white hover:!bg-emerald-600 shadow-sm': isCurrentRoute('/admin/reports') }"
           >
             <el-icon :size="18"><Document /></el-icon>
-            <span>Laporan & Ekspor PDF</span>
+            <span>Laporan Keuangan</span>
           </router-link>
         </div>
 
