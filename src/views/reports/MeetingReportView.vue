@@ -23,12 +23,24 @@
         <el-button
           v-if="selectedMeeting"
           type="primary"
-          plain
-          class="!rounded-xl !text-xs !font-bold"
-          @click="printReport"
+          class="!bg-emerald-600 hover:!bg-emerald-700 !border-none !text-white !rounded-xl !text-xs !font-bold flex items-center gap-1.5 shadow-sm"
+          :loading="exporting"
+          @click="handleExportPdf('print')"
         >
-          <el-icon class="mr-1.5"><Printer /></el-icon>
-          Cetak / Ekspor Laporan
+          <el-icon><Printer /></el-icon>
+          <span>Cetak PDF</span>
+        </el-button>
+
+        <el-button
+          v-if="selectedMeeting"
+          type="primary"
+          plain
+          class="!rounded-xl !text-xs !font-bold flex items-center gap-1.5"
+          :loading="exporting"
+          @click="handleExportPdf('download')"
+        >
+          <el-icon><Download /></el-icon>
+          <span>Unduh PDF</span>
         </el-button>
       </div>
     </div>
@@ -445,17 +457,21 @@ import { useAuthStore } from '../../stores/authStore.js';
 import { meetingService } from '../../services/meetingService.js';
 import { userService } from '../../services/userService.js';
 import { paymentService } from '../../services/paymentService.js';
+import { classService } from '../../services/classService.js';
+import { exportMeetingReportPdf } from '../../utils/pdfExport.js';
 import { formatRupiah } from '../../utils/currency.js';
 import { formatIndonesianDate, formatIndonesianDateTime } from '../../utils/date.js';
 import { ElMessage } from 'element-plus';
-import { Calendar, Search, Check, Close, Printer } from '@element-plus/icons-vue';
+import { Calendar, Search, Check, Close, Printer, Download } from '@element-plus/icons-vue';
 
 const authStore = useAuthStore();
 const loading = ref(false);
+const exporting = ref(false);
 
 const meetingsList = ref([]);
 const studentsList = ref([]);
 const paymentsList = ref([]);
+const classData = ref(null);
 
 const selectedMeetingId = ref('');
 const statusFilter = ref('');
@@ -478,15 +494,17 @@ async function loadData() {
 
   loading.value = true;
   try {
-    const [meetings, students, payments] = await Promise.all([
+    const [meetings, students, payments, classInfo] = await Promise.all([
       meetingService.getMeetingsByClass(classId),
       userService.getStudentsByClass(classId),
-      paymentService.getPaymentsByClass(classId)
+      paymentService.getPaymentsByClass(classId),
+      classService.getClassById(classId).catch(() => null)
     ]);
 
     meetingsList.value = meetings || [];
     studentsList.value = students || [];
     paymentsList.value = payments || [];
+    classData.value = classInfo || null;
 
     // Pilih pertemuan terbaru secara default jika tersedia
     if (meetingsList.value.length > 0) {
@@ -603,7 +621,39 @@ function openDetail(row) {
   detailVisible.value = true;
 }
 
-function printReport() {
-  window.print();
+function handleExportPdf(action = 'print') {
+  if (!selectedMeeting.value) {
+    ElMessage.warning('Pilih salah satu pertemuan terlebih dahulu.');
+    return;
+  }
+  if (processedRows.value.length === 0) {
+    ElMessage.warning('Belum ada data mahasiswa untuk diekspor.');
+    return;
+  }
+
+  exporting.value = true;
+  try {
+    const className = classData.value?.namaKelas || authStore.userClassName || 'Kelas Mahasiswa';
+    const generatedBy = authStore.userProfile?.namaLengkap || 'Bendahara Kelas';
+
+    // Gunakan filteredRows jika ada filter status/pencarian yang aktif
+    const dataToExport = (statusFilter.value || searchQuery.value.trim()) && filteredRows.value.length > 0
+      ? filteredRows.value
+      : processedRows.value;
+
+    exportMeetingReportPdf({
+      meeting: selectedMeeting.value,
+      students: dataToExport,
+      className,
+      generatedBy
+    }, action);
+
+    ElMessage.success(action === 'print' ? 'Mempersiapkan dokumen PDF untuk dicetak...' : 'Laporan PDF pertemuan berhasil diunduh!');
+  } catch (err) {
+    ElMessage.error('Gagal mencetak laporan PDF: ' + err.message);
+    console.error(err);
+  } finally {
+    exporting.value = false;
+  }
 }
 </script>
