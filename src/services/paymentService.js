@@ -225,6 +225,8 @@ export const paymentService = {
         transaction.set(deductSavingsTxnRef, {
           kelasId,
           userId,
+          namaLengkap: namaLengkap || userDoc.data().namaLengkap || '',
+          nim: nim || userDoc.data().nim || '',
           paymentId: paymentRef.id,
           type: 'WITHDRAWAL',
           nominal: pakaiTabungan,
@@ -239,6 +241,8 @@ export const paymentService = {
         transaction.set(savingsTxnRef, {
           kelasId,
           userId,
+          namaLengkap: namaLengkap || userDoc.data().namaLengkap || '',
+          nim: nim || userDoc.data().nim || '',
           paymentId: paymentRef.id,
           type: 'DEPOSIT',
           nominal: totalMasukTabungan,

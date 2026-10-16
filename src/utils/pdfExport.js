@@ -423,3 +423,8 @@ export function exportMeetingReportPdf({ meeting, students = [], className = '',
     doc.save(fileName);
   }
 }
+
+export default {
+  exportMonthlyReportPdf,
+  exportMeetingReportPdf
+};

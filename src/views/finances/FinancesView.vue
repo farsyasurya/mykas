@@ -86,7 +86,7 @@
           </el-radio-button>
           <el-radio-button value="savings">
             <span class="flex items-center gap-1.5">
-              <el-icon><Coin /></el-icon> Tabungan Mahasiswa ({{ studentsList.length }})
+              <el-icon><Coin /></el-icon> Tabungan Mahasiswa ({{ studentsWithSavings.length }})
             </span>
           </el-radio-button>
         </el-radio-group>
@@ -235,7 +235,7 @@
             :data="filteredStudents"
             v-loading="loading"
             style="width: 100%"
-            empty-text="Tidak ada data mahasiswa"
+            empty-text="Tidak ada mahasiswa yang memiliki saldo tabungan"
           >
             <el-table-column label="Mahasiswa" min-width="180">
               <template #default="{ row }">
@@ -278,7 +278,7 @@
         <!-- Mobile Cards (< md) -->
         <div class="block md:hidden space-y-3" v-loading="loading">
           <div v-if="filteredStudents.length === 0" class="text-center py-8 text-xs text-slate-400">
-            Tidak ada data mahasiswa
+            Tidak ada mahasiswa yang memiliki saldo tabungan
           </div>
 
           <div
@@ -315,13 +315,19 @@
         <div v-if="refundHistory.length > 0" class="pt-4 border-t border-slate-100 dark:border-slate-800">
           <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Riwayat Pengembalian Tabungan</h4>
           <div class="hidden sm:block">
-            <el-table :data="refundHistory.slice(0, 5)" size="small" style="width: 100%">
-              <el-table-column label="Waktu" width="150">
+            <el-table :data="refundHistory.slice(0, 10)" size="small" style="width: 100%">
+              <el-table-column label="Waktu" width="130">
                 <template #default="{ row }">
                   <span class="text-xs text-slate-600 dark:text-slate-400">{{ formatIndonesianDate(row.createdAt?.toDate ? row.createdAt.toDate() : row.createdAt) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="Keterangan" min-width="160">
+              <el-table-column label="Mahasiswa" min-width="160">
+                <template #default="{ row }">
+                  <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">{{ row.namaLengkap }}</div>
+                  <div v-if="row.nim && row.nim !== '-'" class="text-[11px] font-mono text-slate-400">NIM: {{ row.nim }}</div>
+                </template>
+              </el-table-column>
+              <el-table-column label="Keterangan" min-width="180">
                 <template #default="{ row }">
                   <span class="text-xs text-slate-800 dark:text-slate-200">{{ row.deskripsi }}</span>
                 </template>
@@ -335,13 +341,17 @@
           </div>
           <div class="block sm:hidden space-y-2">
             <div
-              v-for="rf in refundHistory.slice(0, 5)"
+              v-for="rf in refundHistory.slice(0, 10)"
               :key="rf.id"
               class="p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between text-xs"
             >
               <div class="min-w-0">
-                <p class="font-semibold text-slate-800 dark:text-slate-200 truncate">{{ rf.deskripsi }}</p>
-                <p class="text-[10px] text-slate-400">{{ formatIndonesianDate(rf.createdAt?.toDate ? rf.createdAt.toDate() : rf.createdAt) }}</p>
+                <p class="font-bold text-slate-900 dark:text-slate-100 truncate">
+                  {{ rf.namaLengkap }}
+                  <span v-if="rf.nim && rf.nim !== '-'" class="text-[10px] text-slate-400 font-normal font-mono">({{ rf.nim }})</span>
+                </p>
+                <p class="text-slate-600 dark:text-slate-300 truncate mt-0.5">{{ rf.deskripsi }}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">{{ formatIndonesianDate(rf.createdAt?.toDate ? rf.createdAt.toDate() : rf.createdAt) }}</p>
               </div>
               <span class="font-bold text-amber-600 font-mono text-xs shrink-0 ml-2">{{ formatRupiah(rf.nominal) }}</span>
             </div>
@@ -681,7 +691,18 @@ async function loadAllFinancialData() {
     incomesList.value = incomes || [];
     // Filter student role only
     studentsList.value = (users || []).filter(u => u.role === 'USER');
-    refundHistory.value = (refunds || []).filter(r => r.type === 'WITHDRAWAL');
+
+    const userMap = new Map((users || []).map(u => [u.id, u]));
+    refundHistory.value = (refunds || [])
+      .filter(r => r.type === 'WITHDRAWAL')
+      .map(r => {
+        const student = userMap.get(r.userId);
+        return {
+          ...r,
+          namaLengkap: r.namaLengkap || student?.namaLengkap || 'Mahasiswa',
+          nim: r.nim || student?.nim || '-'
+        };
+      });
   } catch (err) {
     ElMessage.error('Gagal memuat data keuangan: ' + err.message);
   } finally {
@@ -748,11 +769,17 @@ const filteredCombinedTransactions = computed(() => {
   return combinedTransactions.value;
 });
 
-// Filtered students for Tab 2
+// Mahasiswa yang memiliki saldo tabungan > 0
+const studentsWithSavings = computed(() => {
+  return studentsList.value.filter(s => (Number(s.tabungan) || 0) > 0);
+});
+
+// Filtered students for Tab 2 (hanya tampilkan mahasiswa dengan saldo tabungan > 0)
 const filteredStudents = computed(() => {
-  if (!searchStudentQuery.value.trim()) return studentsList.value;
+  const list = studentsWithSavings.value;
+  if (!searchStudentQuery.value.trim()) return list;
   const q = searchStudentQuery.value.toLowerCase();
-  return studentsList.value.filter(s =>
+  return list.filter(s =>
     (s.namaLengkap || '').toLowerCase().includes(q) ||
     (s.nim || '').toLowerCase().includes(q)
   );
@@ -871,6 +898,8 @@ async function handleConfirmRefund() {
     await savingsService.refundSavings({
       kelasId: authStore.userClassId,
       userId: student.id,
+      namaLengkap: student.namaLengkap,
+      nim: student.nim,
       nominal: refundAmount.value,
       deskripsi: refundNote.value || 'Pengembalian tabungan ke mahasiswa',
       createdBy: authStore.userProfile?.namaLengkap || 'admin'

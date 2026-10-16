@@ -2,8 +2,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
-// Force Vite dev server reload to apply Tailwind darkMode: 'class'
-// Reload timestamp: 2026-10-11T13:31:00
+// Force Vite dev server reload to apply Tailwind darkMode: 'class' and invalidate module cache
+// Reload timestamp: 2026-10-16T17:08:00
 export default defineConfig({
   plugins: [vue()],
   resolve: {

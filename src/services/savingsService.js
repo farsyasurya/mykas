@@ -62,7 +62,7 @@ export const savingsService = {
    * Decreases class cash on hand.
    * Recorded in savingsTransactions with type WITHDRAWAL.
    */
-  async refundSavings({ kelasId, userId, nominal, deskripsi = 'Pengembalian tabungan ke mahasiswa', createdBy }) {
+  async refundSavings({ kelasId, userId, namaLengkap, nim, nominal, deskripsi = 'Pengembalian tabungan ke mahasiswa', createdBy }) {
     const amount = parseInt(nominal, 10);
     if (isNaN(amount) || amount <= 0) {
       throw new Error('Nominal pengembalian harus berupa angka positif.');
@@ -78,7 +78,11 @@ export const savingsService = {
         throw new Error('Data mahasiswa tidak ditemukan.');
       }
 
-      const currentTabungan = Number(userDoc.data().tabungan) || 0;
+      const userData = userDoc.data() || {};
+      const studentName = namaLengkap || userData.namaLengkap || '';
+      const studentNim = nim || userData.nim || '';
+
+      const currentTabungan = Number(userData.tabungan) || 0;
       if (amount > currentTabungan) {
         throw new Error(`Saldo tabungan mahasiswa tidak mencukupi (Tersedia: Rp ${currentTabungan.toLocaleString()}, Diminta: Rp ${amount.toLocaleString()}).`);
       }
@@ -95,6 +99,8 @@ export const savingsService = {
       transaction.set(txnRef, {
         kelasId,
         userId,
+        namaLengkap: studentName,
+        nim: studentNim,
         type: 'WITHDRAWAL',
         nominal: amount,
         deskripsi: deskripsi || 'Pengembalian tabungan ke mahasiswa',

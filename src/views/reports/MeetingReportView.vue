@@ -458,7 +458,7 @@ import { meetingService } from '../../services/meetingService.js';
 import { userService } from '../../services/userService.js';
 import { paymentService } from '../../services/paymentService.js';
 import { classService } from '../../services/classService.js';
-import { exportMeetingReportPdf } from '../../utils/pdfExport.js';
+import { exportMeetingReportPdf } from '@/utils/pdfExport.js';
 import { formatRupiah } from '../../utils/currency.js';
 import { formatIndonesianDate, formatIndonesianDateTime } from '../../utils/date.js';
 import { ElMessage } from 'element-plus';

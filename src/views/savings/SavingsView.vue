@@ -280,9 +280,10 @@ const studentsWithSavingsCount = computed(() => {
 });
 
 const filteredStudents = computed(() => {
-  if (!searchQuery.value.trim()) return studentsList.value;
+  const activeStudents = studentsList.value.filter(s => (Number(s.tabungan) || 0) > 0);
+  if (!searchQuery.value.trim()) return activeStudents;
   const q = searchQuery.value.toLowerCase();
-  return studentsList.value.filter(s =>
+  return activeStudents.filter(s =>
     (s.namaLengkap || '').toLowerCase().includes(q) ||
     (s.nim || '').toLowerCase().includes(q)
   );
