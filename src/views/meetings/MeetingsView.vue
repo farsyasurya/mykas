@@ -15,7 +15,19 @@
       </div>
 
       <!-- Action Buttons -->
-      <div v-if="authStore.isAdmin" class="flex items-center gap-2 w-full sm:w-auto">
+      <div v-if="authStore.isAdmin" class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <!-- Button: Reminder WA Pertemuan Berikutnya -->
+        <el-button
+          type="success"
+          class="flex-1 sm:flex-initial !rounded-xl !bg-emerald-600 hover:!bg-emerald-700 !border-none !text-white !font-bold shadow-sm transition-all !text-xs sm:!text-sm flex items-center justify-center gap-1.5 h-9 px-3.5"
+          @click="openNextMeetingWhatsappModal"
+        >
+          <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+          </svg>
+          <span class="ml-1">Reminder WA</span>
+        </el-button>
+
         <!-- Button: Tambah Semester Baru -->
         <el-button
           type="primary"
@@ -175,11 +187,27 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="Rincian Pembayaran" width="180" align="center">
+            <el-table-column label="Rincian & Pengingat" width="220" align="center">
               <template #default="{ row }">
-                <el-button size="small" type="primary" plain @click="openMeetingDetails(row)" class="!rounded-lg">
-                  <el-icon class="mr-1"><User /></el-icon> Cek Mahasiswa
-                </el-button>
+                <div class="flex items-center justify-center gap-1.5">
+                  <el-button size="small" type="primary" plain @click="openMeetingDetails(row)" class="!rounded-lg">
+                    <el-icon class="mr-1"><User /></el-icon> Cek Mahasiswa
+                  </el-button>
+                  <el-button
+                    v-if="row.status !== 'CANCELLED'"
+                    size="small"
+                    type="success"
+                    plain
+                    class="!rounded-lg !border-emerald-600/60 !text-emerald-600 hover:!bg-emerald-50 dark:hover:!bg-emerald-950/40"
+                    title="Pengingat WhatsApp Pertemuan Ini"
+                    @click="openMeetingWhatsappModal(row)"
+                  >
+                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                    <span class="ml-1 text-xs">WA</span>
+                  </el-button>
+                </div>
               </template>
             </el-table-column>
 
@@ -250,6 +278,20 @@
                 @click="openMeetingDetails(meeting)"
               >
                 <el-icon class="mr-1"><User /></el-icon> Detail & Mahasiswa
+              </el-button>
+              <el-button
+                v-if="meeting.status !== 'CANCELLED'"
+                size="small"
+                type="success"
+                plain
+                class="!rounded-xl !text-xs !border-emerald-600/60 !text-emerald-600 flex items-center gap-1"
+                title="Pengingat WhatsApp"
+                @click="openMeetingWhatsappModal(meeting)"
+              >
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                </svg>
+                <span>WA</span>
               </el-button>
               <el-button
                 v-if="authStore.isAdmin && meeting.status !== 'CANCELLED'"
@@ -505,6 +547,181 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- ========================================== -->
+    <!-- DIALOG: Pengingat WhatsApp Pertemuan Kas   -->
+    <!-- ========================================== -->
+    <el-dialog
+      v-model="whatsappReminderDialogVisible"
+      width="94%"
+      class="!max-w-2xl !rounded-3xl !p-5 sm:!p-6"
+      destroy-on-close
+    >
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Pengingat WhatsApp Pertemuan Kas</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Preview & sesuaikan pesan pengingat jadwal kas sebelum dikirim ke grup kelas</p>
+          </div>
+        </div>
+      </template>
+
+      <div class="space-y-4">
+        <!-- Target Meeting Selector & Info Card -->
+        <div class="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Pilih Pertemuan:</span>
+            <el-select
+              v-model="selectedWhatsappMeetingId"
+              placeholder="Pilih pertemuan..."
+              size="small"
+              class="w-full sm:!w-72"
+              @change="handleWhatsappMeetingSelect"
+            >
+              <el-option
+                v-for="m in activeMeetingsList"
+                :key="m.id"
+                :label="`Pertemuan ${m.nomorPertemuan} (${formatIndonesianDate(m.tanggalPertemuan)})`"
+                :value="m.id"
+              />
+            </el-select>
+          </div>
+
+          <div v-if="targetWhatsappMeeting" class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-emerald-200/50 dark:border-emerald-800/30 text-xs">
+            <div>
+              <span class="text-[10px] text-slate-400 block font-medium">Jadwal</span>
+              <strong class="text-slate-800 dark:text-slate-200 block">Pertemuan Ke-{{ targetWhatsappMeeting.nomorPertemuan }}</strong>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block font-medium">Hari / Tanggal</span>
+              <strong class="text-slate-800 dark:text-slate-200 block truncate">{{ formatIndonesianDate(targetWhatsappMeeting.tanggalPertemuan) }}</strong>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block font-medium">Tarif Kas</span>
+              <strong class="text-emerald-600 dark:text-emerald-400 font-bold block">{{ formatRupiah(targetWhatsappMeeting.tarifKas || 7000) }}</strong>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block font-medium">Semester</span>
+              <strong class="text-slate-800 dark:text-slate-200 block truncate">{{ targetWhatsappMeeting.semester || activeSemester }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customization Options -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-3">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+            <el-checkbox
+              v-model="includePaymentNotes"
+              @change="generateWhatsappReminderMessage"
+            >
+              Sertakan info rekening / instruksi transfer
+            </el-checkbox>
+            <el-checkbox
+              v-model="includeMeetingMateri"
+              @change="generateWhatsappReminderMessage"
+            >
+              Sertakan catatan materi / agenda
+            </el-checkbox>
+          </div>
+
+          <div v-if="includePaymentNotes" class="pt-1">
+            <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+              Catatan Rekening / Pembayaran Bendahara:
+            </label>
+            <el-input
+              v-model="whatsappPaymentNotes"
+              size="small"
+              placeholder="Contoh: Transfer ke BCA 123456789 a.n Bendahara atau tunai di kelas"
+              clearable
+              @input="generateWhatsappReminderMessage"
+            />
+          </div>
+
+          <div v-if="includeMeetingMateri" class="pt-1">
+            <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+              Catatan / Agenda Pertemuan:
+            </label>
+            <el-input
+              v-model="whatsappMeetingMateri"
+              size="small"
+              placeholder="Contoh: Diskusi materi perkuliahan & pembayaran kas"
+              clearable
+              @input="generateWhatsappReminderMessage"
+            />
+          </div>
+        </div>
+
+        <!-- Preview & Editor Area -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <span>Preview Pesan WhatsApp</span>
+              <span class="text-[10px] text-slate-400 font-normal">(Bisa diedit langsung sebelum dikirim)</span>
+            </label>
+            <el-button
+              size="small"
+              type="info"
+              link
+              class="!text-xs !font-semibold flex items-center gap-1"
+              @click="generateWhatsappReminderMessage"
+            >
+              <el-icon><RefreshRight /></el-icon>
+              Reset ke Template
+            </el-button>
+          </div>
+
+          <div class="relative">
+            <el-input
+              v-model="whatsappReminderMessage"
+              type="textarea"
+              :rows="11"
+              class="!font-mono !text-xs !leading-relaxed rounded-xl shadow-xs"
+              placeholder="Pesan pengingat WhatsApp akan tampil di sini..."
+              resize="vertical"
+            />
+          </div>
+          <p class="text-[11px] text-slate-400 dark:text-slate-500">
+            💡 Teks menggunakan format WhatsApp (*tebal*, _miring_). Teks siap dikirim langsung ke grup kelas Anda.
+          </p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5 pt-2">
+          <el-button @click="whatsappReminderDialogVisible = false" class="!rounded-xl">
+            Tutup
+          </el-button>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <el-button
+              type="info"
+              plain
+              class="flex-1 sm:flex-none !rounded-xl !font-bold flex items-center justify-center gap-1.5"
+              @click="copyWhatsappReminder"
+            >
+              <el-icon><DocumentCopy /></el-icon>
+              Salin Pesan
+            </el-button>
+
+            <el-button
+              type="success"
+              class="flex-1 sm:flex-none !bg-emerald-600 hover:!bg-emerald-700 !border-none !text-white !rounded-xl !font-bold flex items-center justify-center gap-2 shadow-sm"
+              @click="sendWhatsappReminderToGroup"
+            >
+              <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+              </svg>
+              <span>Kirim ke Group</span>
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -518,7 +735,7 @@ import { userService } from '../../services/userService.js';
 import { formatRupiah } from '../../utils/currency.js';
 import { formatIndonesianDate, formatIndonesianDateTime } from '../../utils/date.js';
 import { ElMessage } from 'element-plus';
-import { Plus, User, Calendar, FolderAdd, Check } from '@element-plus/icons-vue';
+import { Plus, User, Calendar, FolderAdd, Check, DocumentCopy, RefreshRight } from '@element-plus/icons-vue';
 
 const authStore = useAuthStore();
 const loading = ref(false);
@@ -821,5 +1038,174 @@ async function openMeetingDetails(meeting) {
   } catch (err) {
     ElMessage.error('Gagal memuat status mahasiswa: ' + err.message);
   }
+}
+
+// -------------------------------------------------------------
+// Fitur Pengingat WhatsApp Pertemuan Kas
+// -------------------------------------------------------------
+const whatsappReminderDialogVisible = ref(false);
+const selectedWhatsappMeetingId = ref('');
+const whatsappReminderMessage = ref('');
+const includePaymentNotes = ref(true);
+const whatsappPaymentNotes = ref('Pembayaran kas dapat disetor tunai saat perkuliahan atau transfer ke rekening/Dana Bendahara.');
+const includeMeetingMateri = ref(true);
+const whatsappMeetingMateri = ref('');
+
+const activeMeetingsList = computed(() => {
+  return meetingsList.value.filter(m => m.status !== 'CANCELLED');
+});
+
+const nextUpcomingMeeting = computed(() => {
+  if (meetingsList.value.length === 0) return null;
+
+  const candidateList = meetingsList.value.filter(m => m.status !== 'CANCELLED');
+  if (candidateList.length === 0) return null;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // 1. Cari pertemuan yang tanggalnya >= hari ini di semester aktif
+  const activeSemUpcoming = candidateList
+    .filter(m => m.semester === activeSemester.value && (m.tanggalPertemuan >= todayStr || m.status === 'UPCOMING'))
+    .sort((a, b) => (a.tanggalPertemuan || '').localeCompare(b.tanggalPertemuan || ''));
+
+  if (activeSemUpcoming.length > 0) return activeSemUpcoming[0];
+
+  // 2. Cari di seluruh semester
+  const allUpcoming = candidateList
+    .filter(m => m.tanggalPertemuan >= todayStr || m.status === 'UPCOMING')
+    .sort((a, b) => (a.tanggalPertemuan || '').localeCompare(b.tanggalPertemuan || ''));
+
+  if (allUpcoming.length > 0) return allUpcoming[0];
+
+  // 3. Fallback ke pertemuan paling akhir di semester aktif
+  const activeSemMeetings = candidateList.filter(m => m.semester === activeSemester.value);
+  if (activeSemMeetings.length > 0) {
+    return activeSemMeetings[activeSemMeetings.length - 1];
+  }
+
+  return candidateList[candidateList.length - 1];
+});
+
+const targetWhatsappMeeting = computed(() => {
+  if (!selectedWhatsappMeetingId.value) return null;
+  return meetingsList.value.find(m => m.id === selectedWhatsappMeetingId.value) || null;
+});
+
+function formatFullDateWithDay(dateInput) {
+  if (!dateInput) return '-';
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return formatIndonesianDate(dateInput);
+    return new Intl.DateTimeFormat('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(d);
+  } catch (e) {
+    return formatIndonesianDate(dateInput);
+  }
+}
+
+function openNextMeetingWhatsappModal() {
+  const next = nextUpcomingMeeting.value;
+  if (!next) {
+    ElMessage.warning('Belum ada jadwal pertemuan kas yang tersedia.');
+    return;
+  }
+  selectedWhatsappMeetingId.value = next.id;
+  whatsappMeetingMateri.value = next.materi || next.keterangan || '';
+  generateWhatsappReminderMessage();
+  whatsappReminderDialogVisible.value = true;
+}
+
+function openMeetingWhatsappModal(meeting) {
+  if (!meeting) return;
+  selectedWhatsappMeetingId.value = meeting.id;
+  whatsappMeetingMateri.value = meeting.materi || meeting.keterangan || '';
+  generateWhatsappReminderMessage();
+  whatsappReminderDialogVisible.value = true;
+}
+
+function handleWhatsappMeetingSelect() {
+  if (targetWhatsappMeeting.value) {
+    whatsappMeetingMateri.value = targetWhatsappMeeting.value.materi || targetWhatsappMeeting.value.keterangan || '';
+  }
+  generateWhatsappReminderMessage();
+}
+
+function generateWhatsappReminderMessage() {
+  if (!targetWhatsappMeeting.value) return;
+
+  const m = targetWhatsappMeeting.value;
+  const className = currentClass.value?.namaKelas || authStore.userClassName || 'Kelas';
+  const semesterName = m.semester || activeSemester.value || 'Semester Berjalan';
+  const meetingDateFormatted = formatFullDateWithDay(m.tanggalPertemuan);
+  const tarifFormatted = formatRupiah(m.tarifKas || 7000);
+
+  let text = `🔔 *PENGINGAT KAS PERTEMUAN BERIKUTNYA*\n`;
+  if (className) {
+    text += `🏛 *Kelas:* ${className}\n`;
+  }
+  text += `📚 *Semester:* ${semesterName}\n\n`;
+
+  text += `Halo rekan-rekan mahasiswa! 👋\n`;
+  text += `Mengingatkan kembali bahwa jadwal kas perkuliahan berikutnya akan dilaksanakan pada:\n\n`;
+  text += `📌 *Pertemuan:* Ke-${m.nomorPertemuan}\n`;
+  text += `📅 *Hari/Tanggal:* ${meetingDateFormatted}\n`;
+  text += `💰 *Tarif Kas:* ${tarifFormatted} / Mahasiswa\n`;
+
+  const agenda = whatsappMeetingMateri.value?.trim() || m.materi || m.keterangan;
+  if (includeMeetingMateri.value && agenda) {
+    text += `📋 *Agenda/Materi:* ${agenda}\n`;
+  }
+
+  text += `━━━━━━━━━━━━━━━━━━━━\n`;
+
+  if (includePaymentNotes.value && whatsappPaymentNotes.value?.trim()) {
+    text += `\n📝 *INFO PEMBAYARAN:*\n${whatsappPaymentNotes.value.trim()}\n\n`;
+  } else {
+    text += `\n💡 *Catatan:* Mohon dapat mempersiapkan uang pas saat perkuliahan berlangsung atau setor melalui bendahara kelas. Terima kasih atas kerja samanya! 🙏✨\n\n`;
+  }
+
+  text += `_Pesan pengingat resmi via MyKas_`;
+
+  whatsappReminderMessage.value = text;
+}
+
+async function copyWhatsappReminder() {
+  if (!whatsappReminderMessage.value.trim()) {
+    ElMessage.warning('Pesan WhatsApp kosong.');
+    return;
+  }
+  try {
+    if (navigator?.clipboard?.writeText && window.isSecureContext) {
+      await navigator.clipboard.writeText(whatsappReminderMessage.value);
+    } else {
+      const textArea = document.createElement('textarea');
+      textArea.value = whatsappReminderMessage.value;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      textArea.remove();
+    }
+    ElMessage.success('Pesan pengingat WhatsApp berhasil disalin!');
+  } catch (err) {
+    ElMessage.error('Gagal menyalin: ' + err.message);
+  }
+}
+
+function sendWhatsappReminderToGroup() {
+  if (!whatsappReminderMessage.value.trim()) {
+    ElMessage.warning('Pesan WhatsApp tidak boleh kosong.');
+    return;
+  }
+  const text = encodeURIComponent(whatsappReminderMessage.value);
+  const waUrl = `https://api.whatsapp.com/send?text=${text}`;
+  window.open(waUrl, '_blank');
 }
 </script>
