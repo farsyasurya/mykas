@@ -195,9 +195,10 @@
               :min="1000"
               :max="activeStudent.tabungan || 0"
               :step="1000"
+              :formatter="rupiahInputFormatter"
+              :parser="rupiahInputParser"
               class="!w-full"
             />
-            <span class="text-[11px] text-slate-400 mt-1">Maksimal: {{ formatRupiah(activeStudent.tabungan || 0) }}</span>
           </el-form-item>
 
           <el-form-item label="Alasan / Keterangan Pengembalian">
@@ -228,7 +229,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/authStore.js';
 import { userService } from '../../services/userService.js';
 import { savingsService } from '../../services/savingsService.js';
-import { formatRupiah } from '../../utils/currency.js';
+import { formatRupiah, rupiahInputFormatter, rupiahInputParser } from '../../utils/currency.js';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 

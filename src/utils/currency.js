@@ -27,3 +27,27 @@ export function parseIntegerRupiah(val) {
   const parsed = parseInt(cleaned, 10);
   return isNaN(parsed) ? 0 : Math.max(0, parsed);
 }
+
+/**
+ * Formatter for Element Plus el-input-number or text inputs
+ * Formats 10000 -> "Rp 10.000"
+ * @param {any} value
+ * @returns {string}
+ */
+export function rupiahInputFormatter(value) {
+  if (value === null || value === undefined || value === '') return '';
+  const numStr = String(value).replace(/\D/g, '');
+  if (!numStr) return '';
+  return `Rp ${numStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+}
+
+/**
+ * Parser for Element Plus el-input-number
+ * Parses "Rp 10.000" -> "10000"
+ * @param {any} value
+ * @returns {string}
+ */
+export function rupiahInputParser(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+

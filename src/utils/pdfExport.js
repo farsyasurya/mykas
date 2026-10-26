@@ -424,7 +424,361 @@ export function exportMeetingReportPdf({ meeting, students = [], className = '',
   }
 }
 
+/**
+ * Generate professional PDF report for Student Kas Status & Tunggakan
+ * @param {Object} options
+ * @param {string} options.className Class name
+ * @param {string} options.semester Semester label
+ * @param {Array} options.students List of students from rekapMahasiswa
+ * @param {string} options.filterMode 'all' | 'unpaid_only' | 'lunas_only'
+ * @param {string} options.sortBy 'name' | 'tunggakan_desc' | 'nim'
+ * @param {boolean} options.includeSummary Whether to include summary statistics table
+ * @param {boolean} options.includeUnpaidDetail Whether to show missing meetings detail column
+ * @param {boolean} options.includeSavings Whether to show savings balance column
+ * @param {string} options.customNotes Optional custom payment / bank account notes
+ * @param {string} options.generatedBy Name of admin who printed
+ * @param {string} action 'download' | 'print'
+ */
+export function exportStatusTunggakanPdf({
+  className = '',
+  semester = '',
+  students = [],
+  filterMode = 'all',
+  sortBy = 'name',
+  includeSummary = true,
+  includeUnpaidDetail = true,
+  includeSavings = true,
+  customNotes = '',
+  generatedBy = ''
+}, action = 'download') {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const primaryColor = [5, 150, 105]; // #059669 Emerald
+  const darkSlate = [15, 23, 42]; // #0f172a
+  const grayColor = [100, 116, 139]; // #64748b
+  const roseColor = [225, 29, 72]; // #e11d48 Rose
+
+  const todayFormatted = formatIndonesianDateTime(new Date());
+
+  // 1. Filter students
+  let processedStudents = [...students];
+  if (filterMode === 'unpaid_only') {
+    processedStudents = processedStudents.filter(s => s.status === 'BELUM LUNAS' || s.status === 'BELUM ADA PEMBAYARAN' || (Number(s.tunggakan) > 0));
+  } else if (filterMode === 'lunas_only') {
+    processedStudents = processedStudents.filter(s => s.status === 'LUNAS');
+  }
+
+  // 2. Sort students
+  if (sortBy === 'tunggakan_desc') {
+    processedStudents.sort((a, b) => (Number(b.tunggakan) || 0) - (Number(a.tunggakan) || 0) || (a.namaLengkap || '').localeCompare(b.namaLengkap || ''));
+  } else if (sortBy === 'nim') {
+    processedStudents.sort((a, b) => String(a.nim || '').localeCompare(String(b.nim || '')));
+  } else {
+    // Default 'name'
+    processedStudents.sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || ''));
+  }
+
+  // Metrics for all active students in class
+  const activeStudents = students.filter(s => s.status !== 'TIDAK AKTIF');
+  const totalMhs = activeStudents.length;
+  const lunasCount = activeStudents.filter(s => s.status === 'LUNAS').length;
+  const nunggakCount = activeStudents.filter(s => s.status === 'BELUM LUNAS' || s.status === 'BELUM ADA PEMBAYARAN').length;
+  const totalKasMasuk = activeStudents.reduce((sum, s) => sum + (Number(s.totalKasPaid) || 0), 0);
+  const totalTunggakan = activeStudents.reduce((sum, s) => sum + (Number(s.tunggakan) || 0), 0);
+
+  // 1. Header Banner
+  doc.setFillColor(...primaryColor);
+  doc.rect(0, 0, 210, 24, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(15);
+  doc.setFont('helvetica', 'bold');
+  doc.text('MyKas — Laporan Status Kas & Rekap Tunggakan', 14, 15);
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Sistem Manajemen Keuangan Kas Mahasiswa', 196, 15, { align: 'right' });
+
+  // 2. Metadata Section
+  let currentY = 32;
+  doc.setTextColor(...darkSlate);
+  doc.setFontSize(10.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Kelas: ${className || 'Semua Kelas'}`, 14, currentY);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Semester: ${semester || '-'}`, 14, currentY + 5.5);
+
+  const filterLabel = filterMode === 'unpaid_only' ? 'Hanya Mahasiswa Menunggak' : filterMode === 'lunas_only' ? 'Hanya Mahasiswa Lunas' : 'Semua Mahasiswa';
+  doc.text(`Filter Data: ${filterLabel}`, 14, currentY + 11);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Kategori: Rekapitulasi Kas & Tunggakan`, 196, currentY, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Total Terdata: ${processedStudents.length} Mahasiswa`, 196, currentY + 5.5, { align: 'right' });
+  doc.setFontSize(8);
+  doc.setTextColor(...grayColor);
+  doc.text(`Dicetak: ${todayFormatted}${generatedBy ? ' oleh ' + generatedBy : ''}`, 196, currentY + 11, { align: 'right' });
+
+  currentY += 18;
+
+  // 3. Ringkasan Statistik (Optional)
+  if (includeSummary) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...darkSlate);
+    doc.text('1. Ringkasan Status Kas Kelas', 14, currentY);
+    currentY += 3;
+
+    const summaryGrid = [
+      [
+        { content: 'Total Mahasiswa Aktif', styles: { fontStyle: 'bold' } },
+        `${totalMhs} Orang`,
+        { content: 'Total Kas Terkumpul', styles: { fontStyle: 'bold', textColor: [4, 120, 87] } },
+        formatRupiah(totalKasMasuk)
+      ],
+      [
+        { content: 'Sudah Lunas', styles: { fontStyle: 'bold' } },
+        `${lunasCount} Orang (${totalMhs > 0 ? Math.round((lunasCount / totalMhs) * 100) : 0}%)`,
+        { content: 'Total Sisa Tunggakan', styles: { fontStyle: 'bold', textColor: [225, 29, 72] } },
+        formatRupiah(totalTunggakan)
+      ],
+      [
+        { content: 'Ada Tunggakan', styles: { fontStyle: 'bold' } },
+        `${nunggakCount} Orang (${totalMhs > 0 ? Math.round((nunggakCount / totalMhs) * 100) : 0}%)`,
+        { content: 'Status Pembayaran', styles: { fontStyle: 'bold' } },
+        nunggakCount === 0 ? 'Semua Lunas' : `${nunggakCount} Mahasiswa Perlu Follow-up`
+      ]
+    ];
+
+    autoTable(doc, {
+      startY: currentY,
+      body: summaryGrid,
+      theme: 'grid',
+      styles: {
+        fontSize: 8,
+        cellPadding: 2.2,
+        textColor: darkSlate
+      },
+      columnStyles: {
+        0: { cellWidth: 48, fillColor: [248, 250, 252] },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 48, fillColor: [248, 250, 252] },
+        3: { cellWidth: 47 }
+      }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 8;
+  }
+
+  // 4. Tabel Daftar Mahasiswa
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...darkSlate);
+  doc.text(includeSummary ? '2. Rincian Status Kas & Tunggakan Mahasiswa' : '1. Rincian Status Kas & Tunggakan Mahasiswa', 14, currentY);
+  currentY += 3;
+
+  // Build dynamic columns
+  const tableHeaders = ['No', 'NIM', 'Nama Mahasiswa', 'Lunas Wajib', 'Kas Masuk', 'Tunggakan'];
+  if (includeSavings) tableHeaders.push('Tabungan');
+  if (includeUnpaidDetail) tableHeaders.push('Pertemuan Ke-');
+  tableHeaders.push('Status');
+
+  const tableBody = processedStudents.map((st, idx) => {
+    const isLunas = st.status === 'LUNAS';
+    const isInactive = st.status === 'TIDAK AKTIF';
+    const hasTunggakan = Number(st.tunggakan) > 0;
+
+    let statusText = st.status;
+    let statusTextColor = isLunas ? [4, 120, 87] : isInactive ? [148, 163, 184] : [225, 29, 72];
+
+    const row = [
+      idx + 1,
+      st.nim || '-',
+      st.namaLengkap || '-',
+      `${st.pertemuanLunas ?? 0} / ${st.totalPertemuanWajib ?? '-'}`,
+      formatRupiah(st.totalKasPaid || 0),
+      {
+        content: hasTunggakan ? formatRupiah(st.tunggakan) : 'Rp 0',
+        styles: {
+          fontStyle: hasTunggakan ? 'bold' : 'normal',
+          textColor: hasTunggakan ? roseColor : darkSlate,
+          halign: 'right'
+        }
+      }
+    ];
+
+    if (includeSavings) {
+      row.push(formatRupiah(st.saldoTabungan || 0));
+    }
+
+    if (includeUnpaidDetail) {
+      if (hasTunggakan) {
+        let ptmText = '';
+        if (Array.isArray(st.unpaidMeetingNumbers) && st.unpaidMeetingNumbers.length > 0) {
+          ptmText = `Ptm ${st.unpaidMeetingNumbers.join(', ')}`;
+        } else if (st.pertemuanBelumLunas) {
+          const lunasCount = Number(st.pertemuanLunas) || 0;
+          const belumCount = Number(st.pertemuanBelumLunas) || 0;
+          const calculatedPtm = Array.from({ length: belumCount }, (_, i) => lunasCount + i + 1);
+          ptmText = `Ptm ${calculatedPtm.join(', ')}`;
+        } else {
+          ptmText = 'Menunggak';
+        }
+
+        row.push({
+          content: ptmText,
+          styles: {
+            textColor: roseColor,
+            fontStyle: 'bold',
+            fontSize: 7
+          }
+        });
+      } else if (isInactive) {
+        row.push({
+          content: 'Non-aktif',
+          styles: {
+            textColor: grayColor,
+            fontSize: 7
+          }
+        });
+      } else {
+        let ptmLunasText = 'Semua Lunas';
+        if (Array.isArray(st.paidMeetingNumbers) && st.paidMeetingNumbers.length > 0) {
+          if (st.paidMeetingNumbers.length > 4) {
+            ptmLunasText = `Ptm 1 - ${Math.max(...st.paidMeetingNumbers)}`;
+          } else {
+            ptmLunasText = `Ptm ${st.paidMeetingNumbers.join(', ')}`;
+          }
+        } else if (st.totalPertemuanWajib) {
+          ptmLunasText = `Ptm 1 - ${st.totalPertemuanWajib}`;
+        }
+
+        row.push({
+          content: ptmLunasText,
+          styles: {
+            textColor: [4, 120, 87],
+            fontSize: 7
+          }
+        });
+      }
+    }
+
+    row.push({
+      content: statusText,
+      styles: {
+        fontStyle: 'bold',
+        textColor: statusTextColor,
+        halign: 'center'
+      }
+    });
+
+    return row;
+  });
+
+  if (tableBody.length === 0) {
+    const colSpan = tableHeaders.length;
+    tableBody.push([{ content: 'Tidak ada data mahasiswa sesuai filter yang dipilih', colSpan, styles: { halign: 'center', textColor: grayColor } }]);
+  }
+
+  // Setup column styles based on included columns (Total printable width = 182mm)
+  const columnStyles = {
+    0: { cellWidth: 8, halign: 'center' },
+    1: { cellWidth: 24 },
+    2: { cellWidth: includeSavings ? 38 : 46 },
+    3: { cellWidth: 16, halign: 'center' },
+    4: { cellWidth: 21, halign: 'right' },
+    5: { cellWidth: 22, halign: 'right' }
+  };
+
+  let colIdx = 6;
+  if (includeSavings) {
+    columnStyles[colIdx] = { cellWidth: 19, halign: 'right' };
+    colIdx++;
+  }
+  if (includeUnpaidDetail) {
+    columnStyles[colIdx] = { cellWidth: includeSavings ? 34 : 45, fontSize: 7 };
+    colIdx++;
+  }
+  columnStyles[colIdx] = { cellWidth: includeSavings ? 20 : 22, halign: 'center', fontSize: 7.5 };
+
+  autoTable(doc, {
+    startY: currentY,
+    head: [tableHeaders],
+    body: tableBody,
+    theme: 'striped',
+    headStyles: {
+      fillColor: primaryColor,
+      textColor: 255,
+      fontSize: 8,
+      fontStyle: 'bold'
+    },
+    bodyStyles: {
+      fontSize: 7.5,
+      textColor: darkSlate
+    },
+    columnStyles,
+    styles: { cellPadding: 1.8 }
+  });
+
+  currentY = doc.lastAutoTable.finalY + 6;
+
+  // 5. Catatan Pembayaran / Rekening (Optional)
+  if (customNotes && customNotes.trim()) {
+    if (currentY > 240) {
+      doc.addPage();
+      currentY = 20;
+    }
+
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(14, currentY, 182, 18, 2, 2, 'FD');
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...darkSlate);
+    doc.text('Catatan / Informasi Rekening Pembayaran:', 18, currentY + 6);
+
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...grayColor);
+    doc.text(customNotes.trim(), 18, currentY + 12);
+
+    currentY += 24;
+  }
+
+  // 6. Footer Page Numbers
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7.5);
+    doc.setTextColor(...grayColor);
+    doc.text(
+      `Dokumen Resmi MyKas — Laporan Status Kas & Tunggakan (${className || 'Kelas'}) — Dicetak pada ${todayFormatted} — Halaman ${i} dari ${pageCount}`,
+      105,
+      290,
+      { align: 'center' }
+    );
+  }
+
+  const cleanClassName = (className || 'Kelas').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const fileName = `Laporan_Status_Tunggakan_${cleanClassName}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+  if (action === 'print') {
+    doc.autoPrint();
+    const blobUrl = doc.output('bloburl');
+    window.open(blobUrl, '_blank');
+  } else {
+    doc.save(fileName);
+  }
+}
+
 export default {
   exportMonthlyReportPdf,
-  exportMeetingReportPdf
+  exportMeetingReportPdf,
+  exportStatusTunggakanPdf
 };
+

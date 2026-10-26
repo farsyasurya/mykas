@@ -229,10 +229,15 @@
                   :min="0"
                   :max="maxTabunganUsable"
                   :step="1000"
+                  :formatter="rupiahInputFormatter"
+                  :parser="rupiahInputParser"
                   class="!w-full"
                   @change="handleNominalTabunganChange"
                 />
               </div>
+              <span class="text-[10px] text-slate-400 block mt-0.5">
+                Nominal tabungan: <strong class="text-amber-600 dark:text-amber-400 font-mono">{{ formatRupiah(nominalTabunganDipakai || 0) }}</strong>
+              </span>
 
               <div class="flex items-center gap-1.5 flex-wrap">
                 <button
@@ -268,8 +273,13 @@
               v-model="inputNominal"
               :min="minRequiredNominal"
               :step="1000"
+              :formatter="rupiahInputFormatter"
+              :parser="rupiahInputParser"
               class="!w-full"
             />
+            <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              <span>Nominal disetor: <strong class="text-emerald-600 dark:text-emerald-400 font-mono">{{ formatRupiah(inputNominal || 0) }}</strong></span>
+            </div>
 
             <!-- Quick Chips / Shortcuts for Nominal -->
             <div class="flex items-center gap-1.5 mt-2 flex-wrap">
@@ -465,7 +475,7 @@ import { userService } from '../../services/userService.js';
 import { meetingService } from '../../services/meetingService.js';
 import { classService } from '../../services/classService.js';
 import { paymentService } from '../../services/paymentService.js';
-import { formatRupiah } from '../../utils/currency.js';
+import { formatRupiah, rupiahInputFormatter, rupiahInputParser } from '../../utils/currency.js';
 import { formatIndonesianDate } from '../../utils/date.js';
 import { ElMessage } from 'element-plus';
 import { CirclePlus, InfoFilled, Check, Coin } from '@element-plus/icons-vue';

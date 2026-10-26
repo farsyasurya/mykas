@@ -430,8 +430,13 @@
             v-model="addForm.tarifKas"
             :min="1000"
             :step="1000"
+            :formatter="rupiahInputFormatter"
+            :parser="rupiahInputParser"
             class="!w-full"
           />
+          <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+            Nominal terbaca: <strong class="text-emerald-600 dark:text-emerald-400 font-mono">{{ formatRupiah(addForm.tarifKas || 0) }}</strong> / pertemuan
+          </span>
         </el-form-item>
       </el-form>
 
@@ -732,7 +737,7 @@ import { meetingService } from '../../services/meetingService.js';
 import { classService } from '../../services/classService.js';
 import { paymentService } from '../../services/paymentService.js';
 import { userService } from '../../services/userService.js';
-import { formatRupiah } from '../../utils/currency.js';
+import { formatRupiah, rupiahInputFormatter, rupiahInputParser } from '../../utils/currency.js';
 import { formatIndonesianDate, formatIndonesianDateTime } from '../../utils/date.js';
 import { ElMessage } from 'element-plus';
 import { Plus, User, Calendar, FolderAdd, Check, DocumentCopy, RefreshRight } from '@element-plus/icons-vue';

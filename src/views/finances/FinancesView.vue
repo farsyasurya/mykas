@@ -420,7 +420,17 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <el-form-item label="Nominal Pengeluaran (Rp)" required>
-              <el-input-number v-model="txForm.nominal" :min="1000" :step="5000" class="!w-full" />
+              <el-input-number
+                v-model="txForm.nominal"
+                :min="1000"
+                :step="5000"
+                :formatter="rupiahInputFormatter"
+                :parser="rupiahInputParser"
+                class="!w-full"
+              />
+              <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+                Nominal terbaca: <strong class="text-rose-600 dark:text-rose-400 font-mono">{{ formatRupiah(txForm.nominal || 0) }}</strong>
+              </span>
             </el-form-item>
 
             <el-form-item label="Tanggal Pengeluaran" required>
@@ -457,7 +467,17 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <el-form-item label="Nominal Pemasukan (Rp)" required>
-              <el-input-number v-model="txForm.nominal" :min="1000" :step="10000" class="!w-full" />
+              <el-input-number
+                v-model="txForm.nominal"
+                :min="1000"
+                :step="10000"
+                :formatter="rupiahInputFormatter"
+                :parser="rupiahInputParser"
+                class="!w-full"
+              />
+              <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+                Nominal terbaca: <strong class="text-blue-600 dark:text-blue-400 font-mono">{{ formatRupiah(txForm.nominal || 0) }}</strong>
+              </span>
             </el-form-item>
 
             <el-form-item label="Tanggal Pemasukan" required>
@@ -517,8 +537,13 @@
               :min="1000"
               :max="selectedStudentForRefund.tabungan || 0"
               :step="5000"
+              :formatter="rupiahInputFormatter"
+              :parser="rupiahInputParser"
               class="!w-full"
             />
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+              Nominal terbaca: <strong class="text-amber-600 dark:text-amber-400 font-mono">{{ formatRupiah(refundAmount || 0) }}</strong>
+            </span>
           </el-form-item>
 
           <el-form-item label="Keterangan Pengembalian">
@@ -610,7 +635,7 @@ import { expenseService } from '../../services/expenseService.js';
 import { incomeService } from '../../services/incomeService.js';
 import { savingsService } from '../../services/savingsService.js';
 import { userService } from '../../services/userService.js';
-import { formatRupiah } from '../../utils/currency.js';
+import { formatRupiah, rupiahInputFormatter, rupiahInputParser } from '../../utils/currency.js';
 import { formatIndonesianDate, getCurrentMonthYear } from '../../utils/date.js';
 import StatCard from '../../components/dashboard/StatCard.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';

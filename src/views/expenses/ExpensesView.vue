@@ -223,7 +223,17 @@
         </div>
 
         <el-form-item label="Nominal Pengeluaran (Rp)" required>
-          <el-input-number v-model="addForm.nominal" :min="1000" :step="5000" class="!w-full" />
+          <el-input-number
+            v-model="addForm.nominal"
+            :min="1000"
+            :step="5000"
+            :formatter="rupiahInputFormatter"
+            :parser="rupiahInputParser"
+            class="!w-full"
+          />
+          <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+            Nominal terbaca: <strong class="text-rose-600 dark:text-rose-400 font-mono">{{ formatRupiah(addForm.nominal || 0) }}</strong>
+          </span>
         </el-form-item>
 
         <el-form-item label="Deskripsi Tambahan">
@@ -247,7 +257,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/authStore.js';
 import { expenseService } from '../../services/expenseService.js';
-import { formatRupiah } from '../../utils/currency.js';
+import { formatRupiah, rupiahInputFormatter, rupiahInputParser } from '../../utils/currency.js';
 import { formatIndonesianDate } from '../../utils/date.js';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';

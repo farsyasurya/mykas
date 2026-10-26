@@ -211,6 +211,8 @@ export const reportService = {
           totalKasPaid,
           saldoTabungan: student.tabungan || 0,
           tunggakan: 0,
+          unpaidMeetingNumbers: [],
+          paidMeetingNumbers: [],
           status: 'TIDAK AKTIF',
           isActive: false
         };
@@ -225,7 +227,10 @@ export const reportService = {
 
       // Kewajiban saat ini hanya dari pertemuan yang sudah tiba waktunya (sekarang & sebelumnya)
       const totalKewajiban = dueMeetings.reduce((s, m) => s + (Number(m.tarifKas) || tarifKas), 0);
-      const tunggakan = dueMeetings.filter(m => !paidMeetingIds.has(m.id)).reduce((s, m) => s + (Number(m.tarifKas) || tarifKas), 0);
+      const unpaidMeetings = dueMeetings.filter(m => !paidMeetingIds.has(m.id));
+      const tunggakan = unpaidMeetings.reduce((s, m) => s + (Number(m.tarifKas) || tarifKas), 0);
+      const unpaidMeetingNumbers = unpaidMeetings.map(m => m.nomorPertemuan).filter(n => n != null).sort((a, b) => a - b);
+      const paidMeetingNumbers = activeMeetings.filter(m => paidMeetingIds.has(m.id)).map(m => m.nomorPertemuan).filter(n => n != null).sort((a, b) => a - b);
 
       // Status: jika sudah membayar pertemuan sekarang dan sebelumnya, statusnya LUNAS
       // Walaupun ada pertemuan lain setelahnya, tidak wajib membayar selagi waktunya belum datang
@@ -248,6 +253,8 @@ export const reportService = {
         totalPertemuanWajib,
         pertemuanLunas,
         pertemuanBelumLunas: dueUnpaidCount,
+        unpaidMeetingNumbers,
+        paidMeetingNumbers,
         totalKewajiban,
         totalKasPaid,
         saldoTabungan: student.tabungan || 0,

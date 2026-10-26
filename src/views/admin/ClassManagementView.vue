@@ -177,7 +177,17 @@
         </el-form-item>
 
         <el-form-item label="Tarif Kas per Pertemuan (Rp)" required>
-          <el-input-number v-model="createForm.tarifKas" :min="1000" :step="1000" class="!w-full" />
+          <el-input-number
+            v-model="createForm.tarifKas"
+            :min="1000"
+            :step="1000"
+            :formatter="rupiahInputFormatter"
+            :parser="rupiahInputParser"
+            class="!w-full"
+          />
+          <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+            Nominal terbaca: <strong class="text-purple-600 dark:text-purple-400 font-mono">{{ formatRupiah(createForm.tarifKas || 0) }}</strong> / pertemuan
+          </span>
         </el-form-item>
       </el-form>
 
@@ -237,7 +247,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { classService } from '../../services/classService.js';
 import { userService } from '../../services/userService.js';
-import { formatRupiah } from '../../utils/currency.js';
+import { formatRupiah, rupiahInputFormatter, rupiahInputParser } from '../../utils/currency.js';
 import { ElMessage } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
 

@@ -16,14 +16,12 @@
 
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
         <el-button
-          type="success"
+          type="primary"
           class="!bg-emerald-600 hover:!bg-emerald-700 !border-none !text-white !font-bold !rounded-xl flex items-center justify-center gap-2 h-9 px-4 shrink-0 shadow-sm transition-all"
-          @click="openWhatsappModal"
+          @click="openPdfModal"
         >
-          <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-          </svg>
-          <span class="ml-2">  Rekap WhatsApp</span>
+          <el-icon :size="16"><Document /></el-icon>
+          <span>Unduh PDF</span>
         </el-button>
 
         <el-select v-model="statusFilter" placeholder="Filter Status" class="w-full sm:!w-44" clearable>
@@ -340,9 +338,9 @@
       </template>
     </el-dialog>
 
-    <!-- DIALOG: Preview Rekap WhatsApp & Kirim ke Group -->
+    <!-- DIALOG: Opsi Unduh Laporan PDF Status Kas & Tunggakan -->
     <el-dialog
-      v-model="whatsappDialogVisible"
+      v-model="pdfDialogVisible"
       width="94%"
       class="!max-w-2xl !rounded-3xl !p-5 sm:!p-6"
       destroy-on-close
@@ -350,13 +348,11 @@
       <template #header>
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-            </svg>
+            <el-icon :size="22"><Document /></el-icon>
           </div>
           <div>
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Rekap WhatsApp Kas & Tunggakan</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Preview & sesuaikan pesan sebelum dikirim langsung ke grup kelas</p>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Opsi Unduh Laporan PDF</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Atur filter, kolom rincian, dan catatan sebelum dokumen PDF diunduh</p>
           </div>
         </div>
       </template>
@@ -390,95 +386,81 @@
           </div>
         </div>
 
-        <!-- Customization Options -->
-        <div class="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Format Konten Rekap:</span>
-            <el-radio-group v-model="whatsappRekapMode" size="small" @change="generateWhatsappMessage">
-              <el-radio-button label="all">Lengkap (Semua)</el-radio-button>
-              <el-radio-button label="unpaid_only">Hanya Tunggakan</el-radio-button>
-              <el-radio-button label="summary">Ringkasan Saja</el-radio-button>
+        <!-- Opsi Filter & Format Dokumen -->
+        <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 space-y-4">
+          <!-- 1. Filter Data Mahasiswa -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              1. Cakupan Data Mahasiswa:
+            </label>
+            <el-radio-group v-model="pdfFilterMode" size="small" class="w-full flex-wrap gap-1">
+              <el-radio-button label="all">Semua Mahasiswa (Lengkap)</el-radio-button>
+              <el-radio-button label="unpaid_only">Hanya Yang Ada Tunggakan</el-radio-button>
+              <el-radio-button label="lunas_only">Hanya Mahasiswa Lunas</el-radio-button>
             </el-radio-group>
           </div>
 
-          <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-xs">
-            <el-checkbox
-              v-if="whatsappRekapMode === 'all'"
-              v-model="includeLunasList"
-              @change="generateWhatsappMessage"
-            >
-              Cantumkan daftar mahasiswa lunas
-            </el-checkbox>
-
-            <el-checkbox
-              v-if="whatsappRekapMode !== 'summary'"
-              v-model="includeUnpaidDetail"
-              @change="generateWhatsappMessage"
-            >
-              Sertakan rincian nominal & ptm
-            </el-checkbox>
-
-            <el-checkbox
-              v-model="includeCustomNotes"
-              @change="generateWhatsappMessage"
-            >
-              Sertakan rekening / info pembayaran
-            </el-checkbox>
+          <!-- 2. Urutan Data -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              2. Urutan Data Mahasiswa:
+            </label>
+            <el-radio-group v-model="pdfSortBy" size="small" class="w-full flex-wrap gap-1">
+              <el-radio-button label="name">Nama Lengkap (A - Z)</el-radio-button>
+              <el-radio-button label="tunggakan_desc">Tunggakan Terbesar</el-radio-button>
+              <el-radio-button label="nim">NIM Mahasiswa</el-radio-button>
+            </el-radio-group>
           </div>
 
-          <div v-if="includeCustomNotes" class="pt-1">
+          <!-- 3. Kolom & Bagian Dokumen -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              3. Opsi Tampilan Dokumen:
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <el-checkbox v-model="pdfIncludeSummary">
+                Sertakan Kotak Ringkasan Statistik
+              </el-checkbox>
+              <el-checkbox v-model="pdfIncludeUnpaidDetail">
+                Sertakan Kolom Pertemuan Ke- (Rincian Ptm Menunggak)
+              </el-checkbox>
+              <el-checkbox v-model="pdfIncludeSavings">
+                Sertakan Kolom Saldo Tabungan
+              </el-checkbox>
+              <el-checkbox v-model="pdfIncludeNotes">
+                Sertakan Catatan Rekening / Instruksi
+              </el-checkbox>
+            </div>
+          </div>
+
+          <!-- Catatan / Nomor Rekening Bendahara -->
+          <div v-if="pdfIncludeNotes" class="pt-2 border-t border-slate-200/60 dark:border-slate-700/40">
             <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-              Catatan Pembayaran / Nomor Rekening Bendahara:
+              Catatan / Info Rekening Pembayaran (Ditampilkan di akhir dokumen PDF):
             </label>
             <el-input
-              v-model="customNotes"
+              v-model="pdfCustomNotes"
               size="small"
-              placeholder="Contoh: Transfer ke BCA 123456789 a.n Bendahara atau Dana 0812xxxx"
+              placeholder="Contoh: Pembayaran dapat ditransfer ke BCA 123456789 a.n Bendahara Kelas atau tunai saat jam kuliah."
               clearable
-              @input="generateWhatsappMessage"
             />
           </div>
         </div>
 
-        <!-- Preview & Editor Area -->
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <span>Preview Teks WhatsApp</span>
-              <span class="text-[10px] text-slate-400 font-normal">(Bisa diedit langsung sebelum dikirim)</span>
-            </label>
-            <el-button
-              size="small"
-              type="info"
-              link
-              class="!text-xs !font-semibold flex items-center gap-1"
-              @click="generateWhatsappMessage"
-            >
-              <el-icon><RefreshRight /></el-icon>
-              Reset ke Template
-            </el-button>
-          </div>
-
-          <div class="relative">
-            <el-input
-              v-model="whatsappMessage"
-              type="textarea"
-              :rows="12"
-              class="!font-mono !text-xs !leading-relaxed rounded-xl shadow-xs"
-              placeholder="Teks rekap WhatsApp akan tampil di sini..."
-              resize="vertical"
-            />
-          </div>
-          <p class="text-[11px] text-slate-400 dark:text-slate-500">
-            💡 Menggunakan format teks WhatsApp (*tebal*, _miring_). Teks siap dikirim langsung ke grup obrolan.
-          </p>
+        <!-- Preview Status Info -->
+        <div class="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300">
+          <span class="flex items-center gap-1.5">
+            <el-icon class="text-emerald-600 dark:text-emerald-400"><InfoFilled /></el-icon>
+            Dokumen akan memuat: <strong class="text-emerald-700 dark:text-emerald-300">{{ previewStudentCount }} Mahasiswa</strong>
+          </span>
+          <span class="text-[11px] text-slate-400 font-mono">Format A4 Resmi</span>
         </div>
       </div>
 
       <template #footer>
         <div class="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5 pt-2">
-          <el-button @click="whatsappDialogVisible = false" class="!rounded-xl">
-            Tutup
+          <el-button @click="pdfDialogVisible = false" class="!rounded-xl">
+            Batal
           </el-button>
 
           <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -486,21 +468,21 @@
               type="info"
               plain
               class="flex-1 sm:flex-none !rounded-xl !font-bold flex items-center justify-center gap-1.5"
-              @click="copyWhatsappMessage"
+              :loading="pdfExporting"
+              @click="handleExportPdf('print')"
             >
-              <el-icon><DocumentCopy /></el-icon>
-              Salin Pesan
+              <el-icon><Printer /></el-icon>
+              <span>Cetak / Pratinjau</span>
             </el-button>
 
             <el-button
               type="success"
               class="flex-1 sm:flex-none !bg-emerald-600 hover:!bg-emerald-700 !border-none !text-white !rounded-xl !font-bold flex items-center justify-center gap-2 shadow-sm"
-              @click="sendToWhatsappGroup"
+              :loading="pdfExporting"
+              @click="handleExportPdf('download')"
             >
-              <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-              </svg>
-              <span>Kirim ke Group</span>
+              <el-icon><Download /></el-icon>
+              <span>Unduh File PDF</span>
             </el-button>
           </div>
         </div>
@@ -515,8 +497,9 @@ import { useAuthStore } from '../../stores/authStore.js';
 import { reportService } from '../../services/reportService.js';
 import { formatRupiah } from '../../utils/currency.js';
 import { getCurrentMonthYear } from '../../utils/date.js';
+import { exportStatusTunggakanPdf } from '../../utils/pdfExport.js';
 import { ElMessage } from 'element-plus';
-import { Search, Check, Warning, Close, InfoFilled, DocumentCopy, RefreshRight } from '@element-plus/icons-vue';
+import { Search, Check, Warning, Close, InfoFilled, Document, Download, Printer } from '@element-plus/icons-vue';
 
 const authStore = useAuthStore();
 const loading = ref(false);
@@ -533,14 +516,17 @@ const pageSize = ref(7);
 const detailDialogVisible = ref(false);
 const selectedStudent = ref(null);
 
-// State WhatsApp Recap
-const whatsappDialogVisible = ref(false);
-const whatsappMessage = ref('');
-const whatsappRekapMode = ref('all'); // 'all', 'unpaid_only', 'summary'
-const includeLunasList = ref(true);
-const includeUnpaidDetail = ref(true);
-const includeCustomNotes = ref(true);
-const customNotes = ref('Pembayaran kas dapat dilakukan tunai ke Bendahara atau transfer.');
+// State PDF Export Dialog
+const pdfDialogVisible = ref(false);
+const pdfFilterMode = ref('all'); // 'all', 'unpaid_only', 'lunas_only'
+const pdfSortBy = ref('name'); // 'name', 'tunggakan_desc', 'nim'
+const pdfIncludeSummary = ref(true);
+const pdfIncludeUnpaidDetail = ref(true);
+const pdfIncludeSavings = ref(true);
+const pdfIncludeNotes = ref(true);
+const pdfCustomNotes = ref('Pembayaran tunggakan kas dapat diserahkan tunai ke Bendahara atau transfer.');
+const pdfExporting = ref(false);
+
 
 function openStudentDetail(student) {
   selectedStudent.value = student;
@@ -603,122 +589,49 @@ watch([statusFilter, searchQuery], () => {
   currentPage.value = 1;
 });
 
-function openWhatsappModal() {
+function openPdfModal() {
   if (students.value.length === 0) {
-    ElMessage.warning('Belum ada data mahasiswa untuk direkap.');
+    ElMessage.warning('Belum ada data mahasiswa untuk diekspor ke PDF.');
     return;
   }
-  generateWhatsappMessage();
-  whatsappDialogVisible.value = true;
+  pdfDialogVisible.value = true;
 }
 
-function generateWhatsappMessage() {
-  const dateStr = new Date().toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
-
-  const activeStudents = students.value.filter(s => s.status !== 'TIDAK AKTIF');
-  const lunasList = activeStudents.filter(s => s.status === 'LUNAS');
-  const nunggakList = activeStudents.filter(s => s.status === 'BELUM LUNAS' || s.status === 'BELUM ADA PEMBAYARAN');
-
-  const totalTunggakanNominal = nunggakList.reduce((sum, s) => sum + (Number(s.tunggakan) || 0), 0);
-  const totalKasTerkumpul = activeStudents.reduce((sum, s) => sum + (Number(s.totalKasPaid) || 0), 0);
-
-  let text = `📢 *REKAP STATUS KAS & TUNGGAKAN*\n`;
-  if (className.value) {
-    text += `🏛 *Kelas:* ${className.value}\n`;
+const previewStudentCount = computed(() => {
+  let list = students.value;
+  if (pdfFilterMode.value === 'unpaid_only') {
+    return list.filter(s => s.status === 'BELUM LUNAS' || s.status === 'BELUM ADA PEMBAYARAN' || (Number(s.tunggakan) > 0)).length;
   }
-  text += `📚 *Semester:* ${currentSemester.value}\n`;
-  text += `📅 *Per Tanggal:* ${dateStr}\n\n`;
-
-  text += `📊 *RINGKASAN STATUS KAS:*\n`;
-  text += `• Total Mahasiswa Aktif: ${activeStudents.length} Orang\n`;
-  text += `• ✅ Lunas: ${lunasList.length} Orang\n`;
-  text += `• ⚠️ Ada Tunggakan: ${belumLunasCount.value} Orang\n`;
-  if (belumAdaPembayaranCount.value > 0) {
-    text += `• ❌ Belum Bayar Sama Sekali: ${belumAdaPembayaranCount.value} Orang\n`;
+  if (pdfFilterMode.value === 'lunas_only') {
+    return list.filter(s => s.status === 'LUNAS').length;
   }
-  text += `• 💰 Kas Terkumpul: ${formatRupiah(totalKasTerkumpul)}\n`;
-  text += `• ⏳ Total Sisa Tunggakan: ${formatRupiah(totalTunggakanNominal)}\n`;
-  text += `━━━━━━━━━━━━━━━━━━━━\n`;
+  return list.length;
+});
 
-  if (whatsappRekapMode.value !== 'summary') {
-    // Mahasiswa Menunggak
-    if (nunggakList.length > 0) {
-      text += `\n⚠️ *DAFTAR MAHASISWA MENUNGGAK (${nunggakList.length} Orang):*\n`;
-      nunggakList.forEach((s, idx) => {
-        const panggilan = s.namaPanggilan ? ` (${s.namaPanggilan})` : '';
-        let detailInfo = '';
-        if (includeUnpaidDetail.value) {
-          const nominal = formatRupiah(s.tunggakan);
-          const ptm = s.pertemuanBelumLunas ? ` • ${s.pertemuanBelumLunas} ptm` : '';
-          detailInfo = ` : ${nominal}${ptm}`;
-        }
-        text += `${idx + 1}. *${s.namaLengkap}*${panggilan}${detailInfo}\n`;
-      });
-      text += `\n━━━━━━━━━━━━━━━━━━━━\n`;
-    } else {
-      text += `\n🎉 *Alhamdulillah! Semua mahasiswa telah lunas kas untuk pertemuan saat ini.*\n\n━━━━━━━━━━━━━━━━━━━━\n`;
-    }
-
-    // Mahasiswa Lunas
-    if (whatsappRekapMode.value === 'all' && includeLunasList.value && lunasList.length > 0) {
-      text += `\n✅ *DAFTAR MAHASISWA LUNAS (${lunasList.length} Orang):*\n`;
-      lunasList.forEach((s, idx) => {
-        const panggilan = s.namaPanggilan ? ` (${s.namaPanggilan})` : '';
-        text += `${idx + 1}. ${s.namaLengkap}${panggilan}\n`;
-      });
-      text += `\n━━━━━━━━━━━━━━━━━━━━\n`;
-    }
-  }
-
-  if (includeCustomNotes.value && customNotes.value?.trim()) {
-    text += `\n📝 *CATATAN / PEMBAYARAN:*\n${customNotes.value.trim()}\n\n`;
-  } else {
-    text += `\n💡 *Catatan:* Bagi rekan-rekan yang masih memiliki tunggakan, mohon segera menyelesaikan pembayaran kas. Terima kasih atas perhatian dan kerja samanya! 🙏✨\n\n`;
-  }
-
-  text += `_Pesan rekap resmi via MyKas App_`;
-
-  whatsappMessage.value = text;
-}
-
-async function copyWhatsappMessage() {
-  if (!whatsappMessage.value.trim()) {
-    ElMessage.warning('Teks rekap WhatsApp kosong.');
-    return;
-  }
+function handleExportPdf(action = 'download') {
+  pdfExporting.value = true;
   try {
-    if (navigator?.clipboard?.writeText && window.isSecureContext) {
-      await navigator.clipboard.writeText(whatsappMessage.value);
-    } else {
-      const textArea = document.createElement('textarea');
-      textArea.value = whatsappMessage.value;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      document.execCommand('copy');
-      textArea.remove();
-    }
-    ElMessage.success('Teks rekap WhatsApp berhasil disalin ke clipboard! Siap dikirim ke grup.');
-  } catch (err) {
-    ElMessage.error('Gagal menyalin teks: ' + err.message);
-  }
-}
+    exportStatusTunggakanPdf({
+      className: className.value,
+      semester: currentSemester.value,
+      students: students.value,
+      filterMode: pdfFilterMode.value,
+      sortBy: pdfSortBy.value,
+      includeSummary: pdfIncludeSummary.value,
+      includeUnpaidDetail: pdfIncludeUnpaidDetail.value,
+      includeSavings: pdfIncludeSavings.value,
+      customNotes: pdfIncludeNotes.value ? pdfCustomNotes.value : '',
+      generatedBy: authStore.userName || 'Bendahara'
+    }, action);
 
-function sendToWhatsappGroup() {
-  if (!whatsappMessage.value.trim()) {
-    ElMessage.warning('Teks rekap WhatsApp tidak boleh kosong.');
-    return;
+    ElMessage.success(action === 'print' ? 'Membuka pratinjau cetak PDF...' : 'Dokumen PDF status & tunggakan berhasil diunduh!');
+    pdfDialogVisible.value = false;
+  } catch (err) {
+    console.error('PDF export error:', err);
+    ElMessage.error('Gagal membuat dokumen PDF: ' + (err.message || 'Error tidak diketahui'));
+  } finally {
+    pdfExporting.value = false;
   }
-  const text = encodeURIComponent(whatsappMessage.value);
-  const waUrl = `https://api.whatsapp.com/send?text=${text}`;
-  window.open(waUrl, '_blank');
 }
 </script>
+
